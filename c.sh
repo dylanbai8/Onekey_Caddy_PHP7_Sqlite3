@@ -288,6 +288,21 @@ start_process_systemd(){
 
 }
 
+#安装web伪装站点
+typecho_install(){
+	echo -e "${OK} ${GreenBG} 安装Website伪装站点 ${Font}"
+rm -rf /www
+mkdir /www
+cd /www
+#以下为最新稳定版
+wget -N --no-check-certificate ${typecho_path}
+tar zxvf 1.1*
+mv ./build/* ./
+rm -rf 1.1* buil*
+chmod -R 755 ./*
+chown www-data:www-data -R ./*
+cd ~
+}
 
 #命令块执行列表
 main(){
@@ -324,19 +339,4 @@ else
 fi
 
 
-#安装web伪装站点
-typecho_install(){
-	echo -e "${OK} ${GreenBG} 安装Website伪装站点 ${Font}"
-rm -rf /www
-mkdir /www
-cd /www
-#以下为最新稳定版
-wget -N --no-check-certificate ${typecho_path}
-tar zxvf 1.1*
-mv ./build/* ./
-rm -rf 1.1* buil*
-chmod -R 755 ./*
-chown www-data:www-data -R ./*
-cd ~
-}
 
