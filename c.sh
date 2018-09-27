@@ -310,6 +310,9 @@ rm -rf typecho.tar.gz
 
 chmod -R 777 /www/
 chmod -R 755 /www/*
+chown www-data:www-data -R /www/*
+echo -e "${OK} ${GreenBG} 操作已完成 ${Font}"
+
 }
 
 
@@ -327,6 +330,9 @@ rm -rf kodcloud.tar.gz
 
 chmod -R 777 /www/
 chmod -R 755 /www/*
+chown www-data:www-data -R /www/*
+echo -e "${OK} ${GreenBG} 操作已完成 ${Font}"
+
 }
 
 
@@ -338,13 +344,14 @@ rm -rf /www
 mkdir /www
 
 wget -N --no-check-certificate ${wordpress_path} -O wordpress.tar.gz
-tar -zxvf /www/wordpress.tar.gz -C /www
+tar -zxvf wordpress.tar.gz -C /www
 mv /www/wordpress/* /www
 rm -rf /www/wordpress
 rm -rf wordpress.tar.gz
 
 chmod -R 777 /www/
 chmod -R 755 /www/*
+chown www-data:www-data -R /www/*
 
 wget -N --no-check-certificate ${wordpress_sqlite} -O sqlite.zip
 unzip sqlite.zip -d /www
@@ -354,12 +361,8 @@ mv /www/wp-content/plugins/sqlite-integration/db.php /www/wp-content/
 sed -i "s/define('DB_COLLATE', '');/define('DB_TYPE', 'sqlite');/g" /www/wp-config.php
 rm -rf sqlite.zip
 
-touch /www/wp-content/database/htaccess
-	cat <<EOF > touch /www/wp-content/database/htaccess
-deny from all
-EOF
+echo -e "${OK} ${GreenBG} 操作已完成 ${Font}"
 
-mv /www/wp-content/database/htaccess /www/wp-content/database/.htaccess
 }
 
 
@@ -377,8 +380,21 @@ rm -rf zblog.tar.gz
 
 chmod -R 777 /www/
 chmod -R 755 /www/*
+chown www-data:www-data -R /www/*
+
+echo -e "${OK} ${GreenBG} 操作已完成 ${Font}"
+
 }
 
+
+bak_www(){
+rm -rf /www/www.zip
+apt -y install zip
+zip -q -r /www/www.zip /www
+echo -e "${OK} ${GreenBG} 操作已完成 ${Font}"
+echo -e "${OK} ${GreenBG} 下载地址为：https:\\域名\www.zip ${Font}"
+
+}
 
 #命令块执行列表
 main(){
