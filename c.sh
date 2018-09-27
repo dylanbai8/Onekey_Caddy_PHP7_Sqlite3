@@ -1,11 +1,10 @@
 #!/bin/bash
 
 #====================================================
-#	System Request:Debian 7+/Ubuntu 15+/Centos 6+
-#	Author: wulabing & dylanbai8
-#	Dscription: V2RAY 基于 CADDY 的 VMESS+H2+TLS+Website(Use Host)+Rinetd BBR
-#	Blog: https://www.wulabing.com https://oo0.bid
-#	Official document: www.v2ray.com
+#	System Request: Debian 8+
+#	Author: dylanbai8
+#	Dscription: 小内存VPS 一键安装 Caddy+PHP7+Sqlite3 环境 一键绑定域名生成SSL证书
+#	Blog: https://oo0.bid
 #====================================================
 
 #定义文字颜色
@@ -32,7 +31,7 @@ typecho_path="https://github.com/typecho/typecho/releases/download/v1.1-17.10.30
 source /etc/os-release
 
 #脚本欢迎语
-v2ray_hello(){
+install_hello(){
 	echo ""
 	echo -e "${Info} ${GreenBG} 你正在执行 小内存VPS 一键安装 Caddy+PHP7+Sqlite3+Domain_ssl 环境 脚本 ${Font}"
 	echo ""
@@ -76,7 +75,7 @@ judge(){
 }
 
 #用户设定 域名 端口 alterID
-port_alterid_set(){
+domain_set(){
 	echo -e "${Info} ${GreenBG} 【配置 1/3 】请输入你的域名信息(如:www.bing.com)，请确保域名A记录已正确解析至服务器IP ${Font}"
 	stty erase '^H' && read -p "请输入：" domain
 
@@ -170,11 +169,6 @@ apt-get update -y
 #安装PHP 7和Sqlite 3
 apt-get install php7.0-cgi php7.0-fpm php7.0-curl php7.0-gd php7.0-mbstring php7.0-xml php7.0-sqlite3 sqlite3 -y
 
-#Debian 9系统
-#更新系统
-apt-get update -y
-#安装PHP 7和Sqlite 3
-apt-get install php7.0-cgi php7.0-fpm php7.0-curl php7.0-gd php7.0-mbstring php7.0-xml php7.0-sqlite3 sqlite3 -y
 }
 
 #安装caddy主程序
@@ -196,7 +190,17 @@ EOF
 judge "caddy 安装"
 }
 
+default_html(){
+	rm -rf ${www_root}
+	mkdir ${www_root}
+	touch ${www_root}/index.html
+	cat <<EOF > ${www_root}/index.html
+test
+EOF
 
+	judge "生成默认首页"
+
+}
 
 
 
@@ -205,13 +209,13 @@ caddy_conf_add(){
 	mkdir ${caddy_conf_dir}
 	touch ${caddy_conf_dir}/Caddyfile
 	cat <<EOF > ${caddy_conf_dir}/Caddyfile
-http://moerats.com {
-    redir https://www.moerats.com{url}
-    }
-    https://www.moerats.com {
+http://domain:port1 {
+    redir https://domain:port2{url}
+}
+https://domain:port2 {
     gzip
-    tls admin@moerats.com
-    root /typecho
+    tls admin@domain
+    root www_root
     fastcgi / /run/php/php7.0-fpm.sock php
     rewrite {
         if {path} not_match ^\/admin
@@ -231,10 +235,10 @@ EOF
 
 #修正caddy配置配置文件
 modify_caddy(){
-	sed -i "s/SETPORT443/${port}/g" "${caddy_conf}"
-	sed -i "s/SETPORTV/${PORT}/g" "${caddy_conf}"
-	sed -i "s/SETPATH/${v2raypath}/g" "${caddy_conf}"
-	sed -i "s/SETSERVER/${domain}/g" "${caddy_conf}"
+	sed -i "s/port1/${port1}/g" "${caddy_conf}"
+	sed -i "s/port2/${port2}/g" "${caddy_conf}"
+	sed -i "s/domain/${domain}/g" "${caddy_conf}"
+	sed -i "s/www_root/${www_root}/g" "${caddy_conf}"
 }
 
 
@@ -242,7 +246,7 @@ modify_caddy(){
 #检查ssl证书是否生成
 check_ssl(){
 	echo -e "${OK} ${GreenBG} 正在等待域名证书生成 ${Font}"
-	sleep 5
+	sleep 8
 if [[ -e /root/.caddy/acme/acme-v02.api.letsencrypt.org/sites/${domain}/${domain}.key ]]; then
 	echo -e "${OK} ${GreenBG} SSL证书申请 成功 ${Font}"
 else
@@ -252,17 +256,7 @@ else
 fi
 }
 
-#重启caddy和v2ray程序 加载配置
-start_process_systemd(){
-	systemctl enable v2ray >/dev/null 2>&1
-	systemctl enable caddy >/dev/null 2>&1
 
-	systemctl restart caddy
-	judge "caddy 启动"
-
-	systemctl start v2ray
-	judge "V2ray 启动"
-}
 
 #展示客户端配置信息
 show_information(){
@@ -279,32 +273,35 @@ show_information(){
 	echo -e "${Green} Caddy配置文件位置：/usr/local/caddy/Caddyfile"
 	echo ""
 	echo -e "${Green} 网站首页：https://${domain}"
-	echo -e "${Green} 网站目录：https://${domain}"
+	echo -e "${Green} 网站目录：${www_root}"
 	
 	echo -e "----------------------------------------------------------"
 }
+
+#重启caddy和v2ray程序 加载配置
+start_process_systemd(){
+
+	systemctl enable caddy >/dev/null 2>&1
+	systemctl restart caddy
+	judge "caddy 启动"
+
+}
+
 
 #命令块执行列表
 main(){
 	is_root
 	check_system
-	v2ray_hello
-	port_alterid_set
+	install_hello
+	domain_set
 	apache_uninstall
-	dependency_install
 	domain_check
-	port_exist_check 80
-	port_exist_check ${port}
-	time_modify
-	v2ray_install
-	modify_crontab
+	port_exist_check ${port1}
+	port_exist_check ${port2}
+	php_sqlite_install
 	caddy_install
-	web_install
-	v2ray_conf_add
+	default_html
 	caddy_conf_add
-	user_config_add
-	rinetdbbr_install
-	win64_v2ray
 	check_ssl
 	show_information
 	start_process_systemd
