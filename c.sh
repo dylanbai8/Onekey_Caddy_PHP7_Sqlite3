@@ -25,7 +25,7 @@ caddy_conf="${caddy_conf_dir}/Caddyfile"
 
 port1="80"
 port2="443"
-wwwroot="/www"
+wwwpath="/www"
 typecho_path="https://github.com/typecho/typecho/releases/download/v1.1-17.10.30-release/1.1.17.10.30.-release.tar.gz"
 
 source /etc/os-release
@@ -187,10 +187,10 @@ judge "caddy 安装"
 }
 
 default_html(){
-	rm -rf ${wwwroot}
-	mkdir ${wwwroot}
-	touch ${wwwroot}/index.html
-	cat <<EOF > ${wwwroot}/index.html
+	rm -rf ${wwwpath}
+	mkdir ${wwwpath}
+	touch ${wwwpath}/index.html
+	cat <<EOF > ${wwwpath}/index.html
 test
 EOF
 
@@ -211,7 +211,7 @@ http://domain:port1 {
 https://domain:port2 {
     gzip
     tls admin@domain
-    root wwwroot
+    root wwwpath
     fastcgi / /run/php/php7.0-fpm.sock php
     rewrite {
         if {path} not_match ^\/admin
@@ -234,7 +234,7 @@ modify_caddy(){
 	sed -i "s/port1/${port1}/g" "${caddy_conf}"
 	sed -i "s/port2/${port2}/g" "${caddy_conf}"
 	sed -i "s/domain/${domain}/g" "${caddy_conf}"
-	sed -i "s/wwwroot/${wwwroot}/g" "${caddy_conf}"
+	sed -i "s/wwwpath/${wwwpath}/g" "${caddy_conf}"
 }
 
 
@@ -269,7 +269,7 @@ show_information(){
 	echo -e "${Green} Caddy配置文件位置：/usr/local/caddy/Caddyfile"
 	echo ""
 	echo -e "${Green} 网站首页：https://${domain}"
-	echo -e "${Green} 网站目录：${wwwroot}"
+	echo -e "${Green} 网站目录：${wwwpath}"
 	
 	echo -e "----------------------------------------------------------"
 }
