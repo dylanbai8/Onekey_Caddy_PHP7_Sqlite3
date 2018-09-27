@@ -25,7 +25,7 @@ caddy_conf="${caddy_conf_dir}/Caddyfile"
 
 port1="80"
 port2="443"
-www_root="/www"
+wwwroot="/www"
 typecho_path="https://github.com/typecho/typecho/releases/download/v1.1-17.10.30-release/1.1.17.10.30.-release.tar.gz"
 
 source /etc/os-release
@@ -99,15 +99,11 @@ apache_uninstall(){
 
 	systemctl disable caddy >/dev/null 2>&1
 	systemctl stop caddy >/dev/null 2>&1
+	killall -9 caddy >/dev/null 2>&1
 
-	systemctl disable rinetd-bbr >/dev/null 2>&1
-	systemctl stop rinetd-bbr >/dev/null 2>&1
-	killall -9 rinetd-bbr >/dev/null 2>&1
 
 	rm -rf /www >/dev/null 2>&1
 	rm -rf /usr/local/bin/caddy /etc/caddy /etc/systemd/system/caddy.service >/dev/null 2>&1
-
-	rm -rf /usr/bin/rinetd-bbr /etc/rinetd-bbr.conf /etc/systemd/system/rinetd-bbr.service >/dev/null 2>&1
 }
 
 
@@ -191,10 +187,10 @@ judge "caddy 安装"
 }
 
 default_html(){
-	rm -rf ${www_root}
-	mkdir ${www_root}
-	touch ${www_root}/index.html
-	cat <<EOF > ${www_root}/index.html
+	rm -rf ${wwwroot}
+	mkdir ${wwwroot}
+	touch ${wwwroot}/index.html
+	cat <<EOF > ${wwwroot}/index.html
 test
 EOF
 
@@ -215,7 +211,7 @@ http://domain:port1 {
 https://domain:port2 {
     gzip
     tls admin@domain
-    root www_root
+    root wwwroot
     fastcgi / /run/php/php7.0-fpm.sock php
     rewrite {
         if {path} not_match ^\/admin
@@ -238,7 +234,7 @@ modify_caddy(){
 	sed -i "s/port1/${port1}/g" "${caddy_conf}"
 	sed -i "s/port2/${port2}/g" "${caddy_conf}"
 	sed -i "s/domain/${domain}/g" "${caddy_conf}"
-	sed -i "s/www_root/${www_root}/g" "${caddy_conf}"
+	sed -i "s/wwwroot/${wwwroot}/g" "${caddy_conf}"
 }
 
 
@@ -273,7 +269,7 @@ show_information(){
 	echo -e "${Green} Caddy配置文件位置：/usr/local/caddy/Caddyfile"
 	echo ""
 	echo -e "${Green} 网站首页：https://${domain}"
-	echo -e "${Green} 网站目录：${www_root}"
+	echo -e "${Green} 网站目录：${wwwroot}"
 	
 	echo -e "----------------------------------------------------------"
 }
