@@ -26,6 +26,8 @@ caddy_conf="${caddy_conf_dir}/Caddyfile"
 port1="80"
 port2="443"
 typecho_path="https://github.com/typecho/typecho/releases/download/v1.1-17.10.30-release/1.1.17.10.30.-release.tar.gz"
+kodcloud_path="http://static.kodcloud.com/update/download/kodexplorer4.35.zip"
+wordpress_path="https://cn.wordpress.org/wordpress-4.9.4-zh_CN.tar.gz"
 
 source /etc/os-release
 
@@ -75,7 +77,7 @@ judge(){
 
 #用户设定 域名 端口 alterID
 domain_set(){
-	echo -e "${Info} ${GreenBG} 【配置 1/3 】请输入你的域名信息(如:www.bing.com)，请确保域名A记录已正确解析至服务器IP ${Font}"
+	echo -e "${Info} ${GreenBG} 【配置 1/3 】请输入你的域名信息(如:www.bing.com)，请确保域名A记录（或AAAA记录）已正确解析至服务器IP ${Font}"
 	stty erase '^H' && read -p "请输入：" domain
 
 	echo -e "----------------------------------------------------------"
@@ -290,15 +292,53 @@ start_process_systemd(){
 
 #安装web伪装站点
 typecho_install(){
-	echo -e "${OK} ${GreenBG} 安装Website伪装站点 ${Font}"
+echo -e "${OK} ${GreenBG} 安装Website伪装站点 ${Font}"
 rm -rf /www
 mkdir /www
+chmod -R 755 /www
 cd /www
 #以下为最新稳定版
 wget -N --no-check-certificate ${typecho_path}
 tar zxvf 1.1*
 mv ./build/* ./
 rm -rf 1.1* buil*
+chmod -R 755 ./*
+chown www-data:www-data -R ./*
+cd ~
+}
+
+
+#安装web伪装站点
+kodexplorer_install(){
+echo -e "${OK} ${GreenBG} 安装Website伪装站点 ${Font}"
+rm -rf /www
+mkdir /www
+chmod -R 755 /www
+cd /www
+#以下为最新稳定版
+wget -N --no-check-certificate ${kodcloud_path}
+tar zxvf 1.1*
+mv ./kodexplorer/* ./
+rm -rf 1.1* kodexplorer*
+chmod -R 755 ./*
+chown www-data:www-data -R ./*
+cd ~
+}
+
+
+
+#安装web伪装站点
+wordpress_install(){
+echo -e "${OK} ${GreenBG} 安装Website伪装站点 ${Font}"
+rm -rf /www
+mkdir /www
+chmod -R 755 /www
+cd /www
+#以下为最新稳定版
+wget -N --no-check-certificate ${wordpress_path}
+tar zxvf 1.1*
+mv ./wordpress/* ./
+rm -rf 1.1* wordpress*
 chmod -R 755 ./*
 chown www-data:www-data -R ./*
 cd ~
@@ -332,6 +372,12 @@ if [[ $# > 0 ]];then
 	case $key in
 		-t|--typecho_install)
 		typecho_install
+		;;
+		-k|--kodexplorer_install)
+		kodexplorer_install
+		;;
+		-w|--wordpress_install)
+		wordpress_install
 		;;
 	esac
 else
