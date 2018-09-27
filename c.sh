@@ -188,9 +188,16 @@ judge "caddy 安装"
 default_html(){
 	rm -rf /www
 	mkdir /www
-	touch /www/index.html
-	cat <<EOF > /www/index.html
-test
+	touch /www/index.php
+	cat <<EOF > /www/index.php
+启动：/etc/init.d/caddy start<br>
+停止：/etc/init.d/caddy stop<br>
+重启：/etc/init.d/caddy restart<br>
+查看状态：/etc/init.d/caddy status<br>
+查看Caddy启动日志：tail -f /tmp/caddy.log<br>
+安装目录：/usr/local/caddy<br>
+Caddy配置文件位置：/usr/local/caddy/Caddyfile<br>
+网站根目录 /www
 EOF
 
 	judge "生成默认首页"
@@ -308,20 +315,8 @@ main(){
 if [[ $# > 0 ]];then
 	key="$1"
 	case $key in
-		-r|--rm_userjson)
-		rm_userjson
-		;;
-		-n|--new_uuid)
-		new_uuid
-		;;
-		-s|--add_share)
-		add_share
-		;;
-		-m|--share_uuid)
-		share_uuid
-		;;
-		-x|--add_xmr)
-		add_xmr
+		-t|--typecho_install)
+		typecho_install
 		;;
 	esac
 else
@@ -330,17 +325,18 @@ fi
 
 
 #安装web伪装站点
-web_install(){
+typecho_install(){
 	echo -e "${OK} ${GreenBG} 安装Website伪装站点 ${Font}"
-
-mkdir /typecho && cd /typecho
+rm -rf /www
+mkdir /www
+cd /www
 #以下为最新稳定版
-wget http://typecho.org/downloads/1.1-17.10.30-release.tar.gz
+wget -N --no-check-certificate ${typecho_path}
 tar zxvf 1.1*
 mv ./build/* ./
 rm -rf 1.1* buil*
 chmod -R 755 ./*
 chown www-data:www-data -R ./*
-
+cd ~
 }
 
