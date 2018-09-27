@@ -25,9 +25,15 @@ caddy_conf="${caddy_conf_dir}/Caddyfile"
 
 port1="80"
 port2="443"
+
 typecho_path="https://github.com/typecho/typecho/releases/download/v1.1-17.10.30-release/1.1.17.10.30.-release.tar.gz"
-kodcloud_path="http://static.kodcloud.com/update/download/kodexplorer4.35.zip"
-wordpress_path="https://cn.wordpress.org/wordpress-4.9.4-zh_CN.tar.gz"
+
+kodcloud_path="https://github.com/kalcaddle/KodExplorer/archive/4.35.tar.gz"
+
+wordpress_path="https://wordpress.org/latest.tar.gz"
+wordpress_sqlite="https://downloads.wordpress.org/plugin/sqlite-integration.1.8.1.zip"
+
+zblog_path="https://github.com/zblogcn/zblogphp/archive/1740.tar.gz"
 
 source /etc/os-release
 
@@ -96,7 +102,7 @@ apache_uninstall(){
 	echo -e "${OK} ${GreenBG} 正在更新源 请稍后 …… ${Font}"
 
 	apt -y update
-	apt -y install bc
+	apt -y install bc unzip
 
 	systemctl disable caddy >/dev/null 2>&1
 	systemctl stop caddy >/dev/null 2>&1
@@ -295,16 +301,15 @@ typecho_install(){
 echo -e "${OK} ${GreenBG} 安装Website伪装站点 ${Font}"
 rm -rf /www
 mkdir /www
-chmod -R 755 /www
-cd /www
-#以下为最新稳定版
-wget -N --no-check-certificate ${typecho_path}
-tar zxvf 1.1*
-mv ./build/* ./
-rm -rf 1.1* buil*
-chmod -R 755 ./*
-chown www-data:www-data -R ./*
-cd ~
+
+wget -N --no-check-certificate ${typecho_path} -O typecho.tar.gz
+tar -zxvf typecho.tar.gz -C /www
+mv /www/*build*/* /www
+rm -rf /www/*build*
+rm -rf typecho.tar.gz
+
+chmod -R 777 /www/
+chmod -R 755 /www/*
 }
 
 
@@ -313,16 +318,15 @@ kodexplorer_install(){
 echo -e "${OK} ${GreenBG} 安装Website伪装站点 ${Font}"
 rm -rf /www
 mkdir /www
-chmod -R 755 /www
-cd /www
-#以下为最新稳定版
-wget -N --no-check-certificate ${kodcloud_path}
-tar zxvf 1.1*
-mv ./kodexplorer/* ./
-rm -rf 1.1* kodexplorer*
-chmod -R 755 ./*
-chown www-data:www-data -R ./*
-cd ~
+
+wget -N --no-check-certificate ${kodcloud_path} -O kodcloud.tar.gz
+tar -zxvf kodcloud.tar.gz -C /www
+mv /www/*KodExplorer*/* /www
+rm -rf /www/*KodExplorer*
+rm -rf kodcloud.tar.gz
+
+chmod -R 777 /www/
+chmod -R 755 /www/*
 }
 
 
@@ -332,17 +336,49 @@ wordpress_install(){
 echo -e "${OK} ${GreenBG} 安装Website伪装站点 ${Font}"
 rm -rf /www
 mkdir /www
-chmod -R 755 /www
-cd /www
-#以下为最新稳定版
-wget -N --no-check-certificate ${wordpress_path}
-tar zxvf 1.1*
-mv ./wordpress/* ./
-rm -rf 1.1* wordpress*
-chmod -R 755 ./*
-chown www-data:www-data -R ./*
-cd ~
+
+wget -N --no-check-certificate ${wordpress_path} -O wordpress.tar.gz
+tar -zxvf /www/wordpress.tar.gz -C /www
+mv /www/wordpress/* /www
+rm -rf /www/wordpress
+rm -rf wordpress.tar.gz
+
+chmod -R 777 /www/
+chmod -R 755 /www/*
+
+wget -N --no-check-certificate ${wordpress_sqlite} -O sqlite.zip
+unzip sqlite.zip -d /www
+mv /www/wp-config-sample.php /www/wp-config.php
+mv /www/sqlite-integration /www/wp-content/plugins/
+mv /www/wp-content/plugins/sqlite-integration/db.php /www/wp-content/
+sed -i "s/define('DB_COLLATE', '');/define('DB_TYPE', 'sqlite');/g" /www/wp-config.php
+rm -rf sqlite.zip
+
+touch /www/wp-content/database/htaccess
+	cat <<EOF > touch /www/wp-content/database/htaccess
+deny from all
+EOF
+
+mv /www/wp-content/database/htaccess /www/wp-content/database/.htaccess
 }
+
+
+#安装web伪装站点
+zblog_install(){
+echo -e "${OK} ${GreenBG} 安装Website伪装站点 ${Font}"
+rm -rf /www
+mkdir /www
+
+wget -N --no-check-certificate ${zblog_path} -O zblog.tar.gz
+tar -zxvf zblog.tar.gz -C /www
+mv /www/*zblog*/* /www
+rm -rf /www/*zblog*
+rm -rf zblog.tar.gz
+
+chmod -R 777 /www/
+chmod -R 755 /www/*
+}
+
 
 #命令块执行列表
 main(){
@@ -378,6 +414,9 @@ if [[ $# > 0 ]];then
 		;;
 		-w|--wordpress_install)
 		wordpress_install
+		;;
+		-z|--zblog_install)
+		zblog_install
 		;;
 	esac
 else
