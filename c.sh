@@ -3,7 +3,8 @@
 #====================================================
 #	System Request: Debian 8+
 #	Author: dylanbai8
-#	Dscription: 小内存VPS 一键安装 Caddy+PHP7+Sqlite3 环境 一键绑定域名生成SSL证书
+#	Dscription: 小内存VPS 一键安装 Caddy+PHP7+Sqlite3 环境 一键绑定域名 自动生成SSL证书开启https
+#				一键安装 typecho、wordpress、zblog、kodexplorer、v2ray、rinetdbbr
 #	Blog: https://oo0.bid
 #====================================================
 
@@ -22,6 +23,9 @@ Error="${Red}[错误]${Font}"
 #定义配置文件路径
 caddy_conf_dir="/etc/caddy"
 caddy_conf="${caddy_conf_dir}/Caddyfile"
+
+v2ray_conf_dir="/etc/v2ray"
+v2ray_conf="${v2ray_conf_dir}/config.json"
 
 port1="80"
 port2="443"
@@ -172,6 +176,7 @@ apt-get update -y
 #安装PHP 7和Sqlite 3
 apt-get install php7.0-cgi php7.0-fpm php7.0-curl php7.0-gd php7.0-mbstring php7.0-xml php7.0-sqlite3 sqlite3 -y
 
+rm -rf dotdeb.gpg
 }
 
 #安装caddy主程序
@@ -221,7 +226,7 @@ caddy_conf_add(){
 	cat <<EOF > ${caddy_conf_dir}/Caddyfile
 http://domain:port1 {
     redir https://domain:port2{url}
-}
+    }
 https://domain:port2 {
     gzip
     tls admin@domain
@@ -231,6 +236,10 @@ https://domain:port2 {
         if {path} not_match ^\/admin
         to {path} {path}/ /index.php?{query}
      }
+    proxy /download localhost:2080 {
+        websocket
+        header_upstream -Origin
+    }
 }
 EOF
 
@@ -396,6 +405,146 @@ echo -e "${OK} ${GreenBG} 下载地址为：https:\\域名\www.zip ${Font}"
 
 }
 
+
+
+#同步服务器时间
+time_modify(){
+
+	apt -y install ntpdate
+	judge "安装 NTPdate 时间同步服务 "
+
+	systemctl stop ntp &>/dev/null
+
+	echo -e "${Info} ${GreenBG} 正在进行时间同步 ${Font}"
+	ntpdate time.nist.gov
+
+	if [[ $? -eq 0 ]];then 
+		echo -e "${OK} ${GreenBG} 时间同步成功 ${Font}"
+		echo -e "${OK} ${GreenBG} 当前系统时间 `date -R`（时区时间换算后误差应为三分钟以内）${Font}"
+		sleep 1
+	else
+		echo -e "${Error} ${RedBG} 时间同步失败，请检查ntpdate服务是否正常工作 ${Font}"
+	fi 
+}
+
+#生成v2ray配置文件
+v2ray_conf_add(){
+	touch ${v2ray_conf_dir}/config.json
+	cat <<EOF > ${v2ray_conf_dir}/config.json
+{
+  "inbound": {
+    "port": 2080,
+    "listen":"127.0.0.1",
+    "protocol": "vmess",
+    "settings": {
+      "clients": [
+        {
+          "id": "SETUUID",
+          "alterId": 72
+        }
+      ]
+    },
+    "streamSettings": {
+      "network": "ws",
+      "wsSettings": {
+      "path": "/download"
+      }
+    }
+  },
+  "outbound": {
+    "protocol": "freedom",
+    "settings": {}
+  }
+}
+EOF
+
+	UUID=$(cat /proc/sys/kernel/random/uuid)
+	sed -i "s/SETUUID/${UUID}/g" "${v2ray_conf}"
+	judge "V2ray 配置"
+}
+
+#展示客户端配置信息
+v2ray_information(){
+	clear
+	echo ""
+	echo -e "${Info} ${GreenBG} 小内存 VPS 安装 Caddy+PHP7+Sqlite3 环境一键脚本 安装成功 ${Font}"
+	echo -e "----------------------------------------------------------"
+	echo -e "${Green} 地址（address）：你的域名"
+	echo -e "${Green} 端口（port）：443"
+	echo -e "${Green} 用户ID（id）：${UUID}"
+	echo -e "${Green} 额外ID（alterld）：72"
+	echo -e "${Green} 加密方式（security）：none"
+	echo -e "${Green} 传输协议（network）：ws"
+	echo -e "${Green} 伪装类型（type）：none"
+	echo -e "${Green} 伪装类型（ws host）：留空"
+	echo -e "${Green} 伪装路径（ws path）：/download"
+	echo -e "${Green} 底层传输安全：tls"
+	echo ""
+	echo -e "${Green} 注意：伪装路径不要少写 “/” "	
+	echo -e "----------------------------------------------------------"
+}
+
+
+#安装v2ray主程序
+v2ray_install(){
+	time_modify
+	if [[ -d /root/v2ray ]];then
+		rm -rf /root/v2ray
+	fi
+
+	mkdir -p /root/v2ray && cd /root/v2ray
+	wget -N --no-check-certificate https://install.direct/go.sh
+	
+	if [[ -f go.sh ]];then
+		bash go.sh --force
+		judge "安装 V2ray"
+	else
+		echo -e "${Error} ${RedBG} V2ray 安装文件下载失败，请检查下载地址是否可用 ${Font}"
+		exit 4
+	fi
+	rm -rf v2ray
+	v2ray_conf_add
+	v2ray_information
+}
+
+
+#安装bbr端口加速
+rinetdbbr_install(){
+	echo -e "${Info} ${GreenBG} 【配置 2/3 】请输入连接端口（默认:443 无特殊需求请直接按回车键） ${Font}"
+	stty erase '^H' && read -p "请输入：" port3
+	[[ -z ${port3} ]] && port="443"
+
+	export RINET_URL="https://github.com/dylanbai8/V2Ray_h2-tls_Website_onekey/raw/master/bbr/rinetd_bbr_powered"
+	IFACE=$(ip -4 addr | awk '{if ($1 ~ /inet/ && $NF ~ /^[ve]/) {a=$NF}} END{print a}')
+
+	curl -L "${RINET_URL}" >/usr/bin/rinetd-bbr
+	chmod +x /usr/bin/rinetd-bbr
+	judge "rinetd-bbr 安装"
+
+	touch /etc/rinetd-bbr.conf
+	cat <<EOF >> /etc/rinetd-bbr.conf
+0.0.0.0 ${port3} 0.0.0.0 ${port3}
+EOF
+
+	touch /etc/systemd/system/rinetd-bbr.service
+	cat <<EOF > /etc/systemd/system/rinetd-bbr.service
+[Unit]
+Description=rinetd with bbr
+[Service]
+ExecStart=/usr/bin/rinetd-bbr -f -c /etc/rinetd-bbr.conf raw ${IFACE}
+Restart=always
+User=root
+[Install]
+WantedBy=multi-user.target
+EOF
+	judge "rinetd-bbr 自启动配置"
+
+	systemctl enable rinetd-bbr >/dev/null 2>&1
+	systemctl start rinetd-bbr
+	judge "rinetd-bbr 启动"
+}
+
+
 #命令块执行列表
 main(){
 	is_root
@@ -434,10 +583,17 @@ if [[ $# > 0 ]];then
 		-z|--zblog_install)
 		zblog_install
 		;;
+		-a|--bak_www)
+		bak_www
+		;;
+		-v|--v2ray_install)
+		v2ray_install
+		;;
+		-b|--rinetdbbr_install)
+		rinetdbbr_install
+		;;
 	esac
 else
 	main
 fi
-
-
 
