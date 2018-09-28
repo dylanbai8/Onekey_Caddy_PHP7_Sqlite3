@@ -1,6 +1,8 @@
-# 小内存VPS 一键安装 Caddy+PHP7+Sqlite3 环境 （支持VPS最小内存64M）
-# 一键安装 typecho、wordpress、zblog、kodexplorer、一键整站备份
-# 一键安装 v2ray、rinetdbbr
+
+## 脚本特性：
+-- 小内存VPS 一键安装 Caddy+PHP7+Sqlite3 环境 （支持VPS最小内存64M）
+-- 一键安装 typecho、wordpress、zblog、kodexplorer、一键整站备份
+-- 一键安装 v2ray、rinetdbbr
 
 ## 一键安装 Caddy+PHP7+Sqlite3 环境
 ```
