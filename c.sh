@@ -187,8 +187,8 @@ apache_uninstall(){
 
 	apt -y update
 	judge "系统更新"
-	apt -y install bc lsof unzip
-	judge "依赖 bc lsof unzip 安装"
+	apt -y install bc lsof unzip curl
+	judge "必要软件 bc lsof unzip curl 安装"
 }
 
 
@@ -373,11 +373,10 @@ show_information(){
 
 
 #重启caddy加载配置
-start_process_systemd(){
+restart_caddy(){
 	systemctl enable caddy >/dev/null 2>&1
 	systemctl restart caddy >/dev/null 2>&1
 	judge "Caddy+PHP7+Sqlite3 启动"
-
 }
 
 
@@ -561,6 +560,14 @@ EOF
 }
 
 
+#重启v2ray加载配置
+restart_v2ray(){
+	systemctl enable v2ray >/dev/null 2>&1
+	systemctl restart v2ray >/dev/null 2>&1
+	judge "V2ray 启动"
+}
+
+
 #展示v2ray客户端配置信息
 v2ray_information(){
 	clear
@@ -594,11 +601,13 @@ v2ray_install(){
 	rm -rf go.sh
 	v2ray_conf_add
 	v2ray_information
+	restart_v2ray
 }
 
 
 #安装bbr端口加速
 rinetdbbr_install(){
+	uninstall_bbr >/dev/null 2>&1
 	echo -e "${Info} ${GreenBG} 请输入需要加速的端口（默认:443 无特殊需求请直接按回车键） ${Font}"
 	stty erase '^H' && read -p "请输入：" port3
 	[[ -z ${port3} ]] && port3="443"
@@ -651,7 +660,7 @@ main(){
 	caddy_conf_add
 	#check_ssl
 	show_information
-	start_process_systemd
+	restart_caddy
 }
 
 
