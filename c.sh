@@ -46,6 +46,8 @@ wordpress_sqlite="https://downloads.wordpress.org/plugin/sqlite-integration.1.8.
 
 zblog_path="https://github.com/zblogcn/zblogphp/archive/1740.tar.gz"
 
+laverna_path="https://github.com/Laverna/static-laverna/archive/gh-pages.zip"
+
 # ====================================
 
 source /etc/os-release
@@ -469,6 +471,26 @@ echo -e "${OK} ${GreenBG} 操作已完成 ${Font}"
 }
 
 
+#安装laverna
+laverna_install(){
+echo -e "${OK} ${GreenBG} 正在安装 laverna 到 /www 目录 ${Font}"
+rm -rf /www
+mkdir /www
+
+wget -N --no-check-certificate ${laverna_path} -O laverna.zip
+unzip laverna.zip -d /www
+
+mv /www/*laverna*/* /www
+rm -rf /www/*laverna*
+rm -rf laverna.zip
+
+chmod -R 777 /www/
+chmod -R 755 /www/*
+chown www-data:www-data -R /www/*
+echo -e "${OK} ${GreenBG} 操作已完成 ${Font}"
+}
+
+
 #整站备份
 bak_www(){
 echo -e "${OK} ${GreenBG} 正在整站备份（含数据库） ${Font}"
@@ -648,6 +670,9 @@ if [[ $# > 0 ]];then
 		;;
 		-z|--zblog_install)
 		zblog_install
+		;;
+		-l|--laverna_install)
+		laverna_install
 		;;
 		-a|--bak_www)
 		bak_www

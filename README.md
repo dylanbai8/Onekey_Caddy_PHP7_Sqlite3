@@ -37,6 +37,11 @@ bash c.sh -z
 bash c.sh -k
 ```
 
+## 一键安装 laverna 印象笔记
+```
+bash c.sh -l
+```
+
 ## 一键整站备份（一键打包/www目录 含数据库）
 ```
 bash c.sh -a
