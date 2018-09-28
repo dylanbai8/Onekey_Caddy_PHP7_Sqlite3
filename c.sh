@@ -203,7 +203,7 @@ domain_check(){
 		sleep 2
 	else
 		echo -e "${Error} ${RedBG} 检测到域名dns解析IP与本机IP不匹配 请检查域名解析是否已生效 ${Font}"
-		echo -e "${Error} ${RedBG} 如果使用了 cloudflareCDN 输入y继续安装！（y/n）${Font}" && read install
+		echo -e "${Error} ${RedBG} 如果你使用了 IPv6（AAAA记录） 或者 cloudflareCDN 直接输入y继续安装！（y/n）${Font}" && read install
 		case $install in
 		[yY][eE][sS]|[yY])
 			echo -e "${GreenBG} 继续安装 ${Font}"
@@ -245,9 +245,9 @@ echo "deb-src http://packages.dotdeb.org jessie all" | tee --append /etc/apt/sou
 wget --no-check-certificate https://www.dotdeb.org/dotdeb.gpg
 apt-key add dotdeb.gpg
 #更新系统
-apt-get update -y
+apt update -y
 #安装PHP 7和Sqlite 3
-apt-get install php7.0-cgi php7.0-fpm php7.0-curl php7.0-gd php7.0-mbstring php7.0-xml php7.0-sqlite3 sqlite3 -y
+apt -y install php7.0-cgi php7.0-fpm php7.0-curl php7.0-gd php7.0-mbstring php7.0-xml php7.0-sqlite3 sqlite3
 	judge "php+sqlite3 安装"
 rm -rf dotdeb.gpg
 }
@@ -627,7 +627,7 @@ main(){
 	caddy_install
 	default_html
 	caddy_conf_add
-	check_ssl
+	#check_ssl
 	show_information
 	start_process_systemd
 }
