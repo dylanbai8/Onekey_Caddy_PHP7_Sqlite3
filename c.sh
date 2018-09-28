@@ -563,7 +563,7 @@ v2ray_information(){
 	echo -e "${Green} 伪装路径（ws path）：/download"
 	echo -e "${Green} 底层传输安全：tls"
 	echo ""
-	echo -e "${Green} 注意：伪装路径不要少写 “/” "	
+	echo -e "${Green} 注意：伪装路径不要少写 / "	
 	echo -e "----------------------------------------------------------"
 }
 
@@ -571,19 +571,9 @@ v2ray_information(){
 #安装v2ray主程序
 v2ray_install(){
 	time_modify
-	rm -rf /root/v2ray
-	mkdir -p /root/v2ray && cd /root/v2ray
-	wget -N --no-check-certificate https://install.direct/go.sh
-	
-	if [[ -f go.sh ]];then
-		bash go.sh --force
-		judge "安装 V2ray"
-	else
-		echo -e "${Error} ${RedBG} V2ray 安装文件下载失败，请检查下载地址是否可用 ${Font}"
-		exit 4
-	fi
-	cd ~
-	rm -rf /root/v2ray
+	wget -N --no-check-certificate https://install.direct/go.sh && chmod +x go.sh && bash go.sh --force
+	judge "安装 V2ray"
+	rm -rf go.sh
 	v2ray_conf_add
 	v2ray_information
 }
@@ -591,9 +581,9 @@ v2ray_install(){
 
 #安装bbr端口加速
 rinetdbbr_install(){
-	echo -e "${Info} ${GreenBG} 请输入连接端口（默认:443 无特殊需求请直接按回车键） ${Font}"
+	echo -e "${Info} ${GreenBG} 请输入需要加速的端口（默认:443 无特殊需求请直接按回车键） ${Font}"
 	stty erase '^H' && read -p "请输入：" port3
-	[[ -z ${port3} ]] && port="443"
+	[[ -z ${port3} ]] && port3="443"
 
 	export RINET_URL="https://github.com/dylanbai8/Onekey_Caddy_PHP7_Sqlite3/raw/master/bbr"
 	IFACE=$(ip -4 addr | awk '{if ($1 ~ /inet/ && $NF ~ /^[ve]/) {a=$NF}} END{print a}')
