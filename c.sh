@@ -52,9 +52,7 @@ source /etc/os-release
 
 #脚本欢迎语
 install_hello(){
-	echo ""
-	echo -e "${Info} ${GreenBG} 你正在执行 小内存VPS 一键安装 Caddy+PHP7+Sqlite3+Domain_ssl 环境 脚本 ${Font}"
-	echo ""
+	echo -e "${Info} ${GreenBG} 你正在执行 小内存VPS Caddy+PHP7+Sqlite3 环境（支持VPS最小内存64M）一键安装脚本 ${Font}"
 }
 
 
@@ -76,7 +74,6 @@ check_system(){
 
 	if [[ "${ID}" == "debian" && ${VERSION_ID} -ge 8 ]];then
 		echo -e "${OK} ${GreenBG} 当前系统为 Debian ${VERSION_ID} ${VERSION} ${Font}"
-		INS="apt"
 	else
 		echo -e "${Error} ${RedBG} 当前系统为 ${ID} ${VERSION_ID} 不在支持的系统列表内，安装中断 ${Font}"
 		exit 1
@@ -86,6 +83,7 @@ check_system(){
 
 #检测依赖
 systemd_chack(){
+echo -e "${OK} ${GreenBG} 正在检测是否支持 systemd ${Font}"
 	for CMD in iptables grep cut xargs systemctl ip awk
 	do
 		if ! type -p ${CMD}; then
@@ -93,7 +91,7 @@ systemd_chack(){
 			exit 1
 		fi
 	done
-	judge "安装 bc"
+	echo -e "${OK} ${GreenBG} 符合安装条件 ${Font}"
 }
 
 
@@ -111,45 +109,59 @@ judge(){
 
 #设定域名
 domain_set(){
-	echo -e "${Info} ${GreenBG} 请输入你的域名信息(如:www.bing.com)，请确保域名A记录（或AAAA记录）已正确解析至服务器IP（或IPv6）${Font}"
+	echo -e "${Info} ${GreenBG} 请输入你的域名信息(如:www.bing.com)，请确保域名A记录（或AAAA记录）已正确解析至服务器IP（支持IPv6）${Font}"
 	stty erase '^H' && read -p "请输入：" domain
+	[[ -z ${domain} ]] && domain="none"
+	if [ "${domain}" = "none" ];then
+		domain_set
+	else
+		echo -e "${OK} ${GreenBG} 你设置的域名为：${domain} ${Font}"
+	fi
 }
 
 
 #卸载caddy
 uninstall_caddy(){
+echo -e "${OK} ${GreenBG} 正在卸载 caddy 请稍后 ... ${Font}"
 systemctl disable caddy >/dev/null 2>&1
 systemctl stop caddy >/dev/null 2>&1
 killall -9 caddy >/dev/null 2>&1
 rm -rf /usr/local/bin/caddy /etc/caddy /etc/systemd/system/caddy.service >/dev/null 2>&1
 rm -rf /www >/dev/null 2>&1
 rm -rf /root/.caddy >/dev/null 2>&1
+echo -e "${OK} ${GreenBG} 操作已完成 ${Font}"
 }
 
 
 #卸载php和sqlite
 uninstall_php_sqlite(){
+echo -e "${OK} ${GreenBG} 正在卸载 php+sqlite 请稍后 ... ${Font}"
 apt -y purge php7.0-cgi php7.0-fpm php7.0-curl php7.0-gd php7.0-mbstring php7.0-xml php7.0-sqlite3 sqlite3 >/dev/null 2>&1
 apt -y purge unzip zip >/dev/null 2>&1
+echo -e "${OK} ${GreenBG} 操作已完成 ${Font}"
 }
 
 
 #卸载v2ray
 uninstall_v2ray(){
+echo -e "${OK} ${GreenBG} 正在卸载 v2ray 请稍后 ... ${Font}"
 systemctl disable v2ray >/dev/null 2>&1
 systemctl stop v2ray >/dev/null 2>&1
 killall -9 v2ray >/dev/null 2>&1
 rm -rf /usr/bin/v2ray /etc/v2ray /etc/systemd/system/v2ray.service >/dev/null 2>&1
-apt -y purge bc lsof >/dev/null 2>&1
+apt -y purge bc lsof ntpdate >/dev/null 2>&1
+echo -e "${OK} ${GreenBG} 操作已完成 ${Font}"
 }
 
 
 #卸载bbr
 uninstall_bbr(){
+echo -e "${OK} ${GreenBG} 正在卸载 rinetdbbr 请稍后 ... ${Font}"
 systemctl disable rinetd-bbr >/dev/null 2>&1
 systemctl stop rinetd-bbr >/dev/null 2>&1
 killall -9 rinetd-bbr >/dev/null 2>&1
 rm -rf /usr/bin/rinetd-bbr /etc/rinetd-bbr.conf /etc/systemd/system/rinetd-bbr.service >/dev/null 2>&1
+echo -e "${OK} ${GreenBG} 操作已完成 ${Font}"
 }
 
 
@@ -163,7 +175,7 @@ rm -rf /etc/apache2 /etc/systemd/system/apache2.service >/dev/null 2>&1
 }
 
 
-#强制清除可能残余的http服务 v2ray服务 bbr服务 更新源
+#强制清除可能残余的http服务 更新源
 apache_uninstall(){
 	echo -e "${OK} ${GreenBG} 正在强制清理可能残余的http服务 ${Font}"
 
@@ -172,7 +184,9 @@ apache_uninstall(){
 	echo -e "${OK} ${GreenBG} 正在更新源 请稍后 …… ${Font}"
 
 	apt -y update
+	judge "系统更新"
 	apt -y install bc lsof unzip
+	judge "依赖 bc lsof unzip 安装"
 }
 
 
@@ -185,7 +199,7 @@ domain_check(){
 	echo -e "${OK} ${GreenBG} 本机IP: ${local_ip} ${Font}"
 	sleep 2
 	if [[ $(echo ${local_ip}|tr '.' '+'|bc) -eq $(echo ${domain_ip}|tr '.' '+'|bc) ]];then
-		echo -e "${OK} ${GreenBG} 域名dns解析IP  与 本机IP 匹配 域名解析正确 ${Font}"
+		echo -e "${OK} ${GreenBG} 域名dns解析IP与本机IP匹配 域名解析正确 ${Font}"
 		sleep 2
 	else
 		echo -e "${Error} ${RedBG} 检测到域名dns解析IP与本机IP不匹配 请检查域名解析是否已生效 ${Font}"
@@ -234,7 +248,7 @@ apt-key add dotdeb.gpg
 apt-get update -y
 #安装PHP 7和Sqlite 3
 apt-get install php7.0-cgi php7.0-fpm php7.0-curl php7.0-gd php7.0-mbstring php7.0-xml php7.0-sqlite3 sqlite3 -y
-
+	judge "php+sqlite3 安装"
 rm -rf dotdeb.gpg
 }
 
@@ -255,7 +269,7 @@ User=root
 WantedBy=multi-user.target
 EOF
 
-judge "caddy 安装"
+	judge "caddy 安装"
 }
 
 
@@ -284,6 +298,7 @@ EOF
 
 #生成caddy配置文件
 caddy_conf_add(){
+	rm -rf ${caddy_conf_dir}
 	mkdir ${caddy_conf_dir}
 	touch ${caddy_conf_dir}/Caddyfile
 	cat <<EOF > ${caddy_conf_dir}/Caddyfile
@@ -340,36 +355,37 @@ fi
 show_information(){
 	clear
 	echo ""
-	echo -e "${Info} ${GreenBG} 小内存 VPS 安装 Caddy+PHP7+Sqlite3 环境一键脚本 安装成功 ${Font}"
+	echo -e "${Info} ${GreenBG} 小内存VPS 一键安装 Caddy+PHP7+Sqlite3 环境 （支持VPS最小内存64M） 安装成功 ${Font}"
 	echo -e "----------------------------------------------------------"
+	echo ""
 	echo -e "${Green} 启动：/etc/init.d/caddy start"
 	echo -e "${Green} 停止：/etc/init.d/caddy stop"
 	echo -e "${Green} 重启：/etc/init.d/caddy restart"
+	echo ""
 	echo -e "${Green} 查看状态：/etc/init.d/caddy status"
 	echo -e "${Green} 查看Caddy启动日志：tail -f /tmp/caddy.log"
+	echo ""
 	echo -e "${Green} caddy安装目录：/usr/local/caddy"
 	echo -e "${Green} Caddy配置文件位置：/usr/local/caddy/Caddyfile"
 	echo ""
 	echo -e "${Green} 网站首页：https://${domain}"
 	echo -e "${Green} 网站目录：/www"
-	
 	echo -e "----------------------------------------------------------"
 }
 
 
 #重启caddy加载配置
 start_process_systemd(){
-
 	systemctl enable caddy >/dev/null 2>&1
-	systemctl restart caddy
-	judge "caddy 启动"
+	systemctl restart caddy >/dev/null 2>&1
+	judge "Caddy+PHP7+Sqlite3 启动"
 
 }
 
 
 #安装typecho
 typecho_install(){
-echo -e "${OK} ${GreenBG} 安装Website伪装站点 ${Font}"
+echo -e "${OK} ${GreenBG} 正在安装 typecho 到 /www 目录 ${Font}"
 rm -rf /www
 mkdir /www
 
@@ -387,29 +403,9 @@ echo -e "${OK} ${GreenBG} 操作已完成 ${Font}"
 }
 
 
-#安装kedexplorer
-kodexplorer_install(){
-echo -e "${OK} ${GreenBG} 安装Website伪装站点 ${Font}"
-rm -rf /www
-mkdir /www
-
-wget -N --no-check-certificate ${kodcloud_path} -O kodcloud.tar.gz
-tar -zxvf kodcloud.tar.gz -C /www
-mv /www/*KodExplorer*/* /www
-rm -rf /www/*KodExplorer*
-rm -rf kodcloud.tar.gz
-
-chmod -R 777 /www/
-chmod -R 755 /www/*
-chown www-data:www-data -R /www/*
-echo -e "${OK} ${GreenBG} 操作已完成 ${Font}"
-
-}
-
-
 #安装wordpress
 wordpress_install(){
-echo -e "${OK} ${GreenBG} 安装Website伪装站点 ${Font}"
+echo -e "${OK} ${GreenBG} 正在安装 wordpress 到 /www 目录 ${Font}"
 rm -rf /www
 mkdir /www
 
@@ -438,7 +434,7 @@ echo -e "${OK} ${GreenBG} 操作已完成 ${Font}"
 
 #安装zblog
 zblog_install(){
-echo -e "${OK} ${GreenBG} 安装Website伪装站点 ${Font}"
+echo -e "${OK} ${GreenBG} 正在安装 zblog 到 /www 目录 ${Font}"
 rm -rf /www
 mkdir /www
 
@@ -457,8 +453,29 @@ echo -e "${OK} ${GreenBG} 操作已完成 ${Font}"
 }
 
 
+#安装kedexplorer
+kodexplorer_install(){
+echo -e "${OK} ${GreenBG} 正在安装 kedexplorer 到 /www 目录 ${Font}"
+rm -rf /www
+mkdir /www
+
+wget -N --no-check-certificate ${kodcloud_path} -O kodcloud.tar.gz
+tar -zxvf kodcloud.tar.gz -C /www
+mv /www/*KodExplorer*/* /www
+rm -rf /www/*KodExplorer*
+rm -rf kodcloud.tar.gz
+
+chmod -R 777 /www/
+chmod -R 755 /www/*
+chown www-data:www-data -R /www/*
+echo -e "${OK} ${GreenBG} 操作已完成 ${Font}"
+
+}
+
+
 #整站备份
 bak_www(){
+echo -e "${OK} ${GreenBG} 正在整站备份（含数据库） ${Font}"
 rm -rf /www/www.zip
 apt -y install zip
 zip -q -r /www/www.zip /www
@@ -530,15 +547,18 @@ EOF
 v2ray_information(){
 	clear
 	echo ""
-	echo -e "${Info} ${GreenBG} 小内存 VPS 安装 Caddy+PHP7+Sqlite3 环境一键脚本 安装成功 ${Font}"
+	echo -e "${Info} ${GreenBG} 基于 Caddy+v2ray 的 VMESS+WS+TLS+Website(Use Path) 安装成功 ${Font}"
 	echo -e "----------------------------------------------------------"
+	echo ""
 	echo -e "${Green} 地址（address）：你的域名"
 	echo -e "${Green} 端口（port）：443"
 	echo -e "${Green} 用户ID（id）：${UUID}"
 	echo -e "${Green} 额外ID（alterld）：72"
+	echo ""
 	echo -e "${Green} 加密方式（security）：none"
 	echo -e "${Green} 传输协议（network）：ws"
 	echo -e "${Green} 伪装类型（type）：none"
+	echo ""
 	echo -e "${Green} 伪装类型（ws host）：留空"
 	echo -e "${Green} 伪装路径（ws path）：/download"
 	echo -e "${Green} 底层传输安全：tls"
@@ -551,10 +571,7 @@ v2ray_information(){
 #安装v2ray主程序
 v2ray_install(){
 	time_modify
-	if [[ -d /root/v2ray ]];then
-		rm -rf /root/v2ray
-	fi
-
+	rm -rf /root/v2ray
 	mkdir -p /root/v2ray && cd /root/v2ray
 	wget -N --no-check-certificate https://install.direct/go.sh
 	
@@ -565,7 +582,8 @@ v2ray_install(){
 		echo -e "${Error} ${RedBG} V2ray 安装文件下载失败，请检查下载地址是否可用 ${Font}"
 		exit 4
 	fi
-	rm -rf v2ray
+	cd ~
+	rm -rf /root/v2ray
 	v2ray_conf_add
 	v2ray_information
 }
@@ -604,7 +622,7 @@ EOF
 
 	systemctl enable rinetd-bbr >/dev/null 2>&1
 	systemctl start rinetd-bbr
-	judge "rinetd-bbr 启动"
+	judge "加速端口：${port3} rinetd-bbr 启动"
 }
 
 
