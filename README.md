@@ -11,8 +11,8 @@
 -----
 
 ## 一键安装 Caddy+PHP7+Sqlite3 环境
-### 1.解析好域名 2.执行以下命令
-### 3.提示：支持IPv6（AAAA记录）如果本地网络不支持IPv6可以通过cloudflareCDN转换为IP4
+#### 1.解析好域名 2.执行以下命令
+#### 3.提示：支持IPv6（AAAA记录）如果本地网络不支持IPv6可以通过cloudflareCDN转换为IP4
 ```
 wget -N --no-check-certificate git.io/c.sh && chmod +x c.sh && bash c.sh
 ```
