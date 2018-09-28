@@ -3,8 +3,11 @@
 #====================================================
 #	System Request: Debian 8+
 #	Author: dylanbai8
-#	Dscription: 小内存VPS 一键安装 Caddy+PHP7+Sqlite3 环境 一键绑定域名 自动生成SSL证书开启https
-#				一键安装 typecho、wordpress、zblog、kodexplorer、v2ray、rinetdbbr
+#	* 小内存VPS 一键安装 Caddy+PHP7+Sqlite3 环境 （支持VPS最小内存64M）
+#	* 一键绑定域名自动生成SSL证书开启https（ssl自动续期）、支持IPv6
+#	* 一键安装 typecho、wordpress、zblog、kodexplorer、一键整站备份
+#	* 一键安装 v2ray、rinetdbbr
+#	* 支持系统：Debian 8 （建议选择mini版）
 #	Blog: https://oo0.bid
 #====================================================
 
@@ -30,6 +33,10 @@ v2ray_conf="${v2ray_conf_dir}/config.json"
 port1="80"
 port2="443"
 
+
+# 网站源码下载地址 如失效可自行修改
+# ====================================
+
 typecho_path="https://github.com/typecho/typecho/releases/download/v1.1-17.10.30-release/1.1.17.10.30.-release.tar.gz"
 
 kodcloud_path="https://github.com/kalcaddle/KodExplorer/archive/4.35.tar.gz"
@@ -39,6 +46,8 @@ wordpress_sqlite="https://downloads.wordpress.org/plugin/sqlite-integration.1.8.
 
 zblog_path="https://github.com/zblogcn/zblogphp/archive/1740.tar.gz"
 
+# ====================================
+
 source /etc/os-release
 
 #脚本欢迎语
@@ -47,7 +56,6 @@ install_hello(){
 	echo -e "${Info} ${GreenBG} 你正在执行 小内存VPS 一键安装 Caddy+PHP7+Sqlite3+Domain_ssl 环境 脚本 ${Font}"
 	echo ""
 }
-
 
 
 #检测root权限
@@ -60,6 +68,7 @@ is_root(){
 		exit 1
 	fi
 }
+
 
 #检测系统版本
 check_system(){
@@ -74,6 +83,20 @@ check_system(){
 	fi
 }
 
+
+#检测依赖
+systemd_chack(){
+	for CMD in iptables grep cut xargs systemctl ip awk
+	do
+		if ! type -p ${CMD}; then
+			echo -e "${Error} ${RedBG} 系统过度精简 缺少必要依赖 脚本终止安装 ${Font}"
+			exit 1
+		fi
+	done
+	judge "安装 bc"
+}
+
+
 #检测安装完成或失败
 judge(){
 	if [[ $? -eq 0 ]];then
@@ -85,38 +108,72 @@ judge(){
 	fi
 }
 
-#用户设定 域名 端口 alterID
-domain_set(){
-	echo -e "${Info} ${GreenBG} 【配置 1/3 】请输入你的域名信息(如:www.bing.com)，请确保域名A记录（或AAAA记录）已正确解析至服务器IP ${Font}"
-	stty erase '^H' && read -p "请输入：" domain
 
-	echo -e "----------------------------------------------------------"
-	echo -e "${Info} ${GreenBG} 你输入的配置信息为 域名：${domain}"
-	echo -e "----------------------------------------------------------"
+#设定域名
+domain_set(){
+	echo -e "${Info} ${GreenBG} 请输入你的域名信息(如:www.bing.com)，请确保域名A记录（或AAAA记录）已正确解析至服务器IP（或IPv6）${Font}"
+	stty erase '^H' && read -p "请输入：" domain
 }
 
-#强制清除可能残余的http服务 v2ray服务 关闭防火墙 更新源
+
+#卸载caddy
+uninstall_caddy(){
+systemctl disable caddy >/dev/null 2>&1
+systemctl stop caddy >/dev/null 2>&1
+killall -9 caddy >/dev/null 2>&1
+rm -rf /usr/local/bin/caddy /etc/caddy /etc/systemd/system/caddy.service >/dev/null 2>&1
+rm -rf /www >/dev/null 2>&1
+rm -rf /root/.caddy >/dev/null 2>&1
+}
+
+
+#卸载php和sqlite
+uninstall_php_sqlite(){
+apt -y purge php7.0-cgi php7.0-fpm php7.0-curl php7.0-gd php7.0-mbstring php7.0-xml php7.0-sqlite3 sqlite3 >/dev/null 2>&1
+apt -y purge unzip zip >/dev/null 2>&1
+}
+
+
+#卸载v2ray
+uninstall_v2ray(){
+systemctl disable v2ray >/dev/null 2>&1
+systemctl stop v2ray >/dev/null 2>&1
+killall -9 v2ray >/dev/null 2>&1
+rm -rf /usr/bin/v2ray /etc/v2ray /etc/systemd/system/v2ray.service >/dev/null 2>&1
+apt -y purge bc lsof >/dev/null 2>&1
+}
+
+
+#卸载bbr
+uninstall_bbr(){
+systemctl disable rinetd-bbr >/dev/null 2>&1
+systemctl stop rinetd-bbr >/dev/null 2>&1
+killall -9 rinetd-bbr >/dev/null 2>&1
+rm -rf /usr/bin/rinetd-bbr /etc/rinetd-bbr.conf /etc/systemd/system/rinetd-bbr.service >/dev/null 2>&1
+}
+
+
+#卸载apache2
+uninstall_apache2(){
+systemctl disable apache2 >/dev/null 2>&1
+systemctl stop apache2 >/dev/null 2>&1
+killall -9 apache2 >/dev/null 2>&1
+apt purge apache2 -y >/dev/null 2>&1
+rm -rf /etc/apache2 /etc/systemd/system/apache2.service >/dev/null 2>&1
+}
+
+
+#强制清除可能残余的http服务 v2ray服务 bbr服务 更新源
 apache_uninstall(){
 	echo -e "${OK} ${GreenBG} 正在强制清理可能残余的http服务 ${Font}"
 
-	systemctl disable apache2 >/dev/null 2>&1
-	systemctl stop apache2 >/dev/null 2>&1
-	apt purge apache2 -y >/dev/null 2>&1
+	uninstall_apache2
 
 	echo -e "${OK} ${GreenBG} 正在更新源 请稍后 …… ${Font}"
 
 	apt -y update
-	apt -y install bc unzip
-
-	systemctl disable caddy >/dev/null 2>&1
-	systemctl stop caddy >/dev/null 2>&1
-	killall -9 caddy >/dev/null 2>&1
-
-
-	rm -rf /www >/dev/null 2>&1
-	rm -rf /usr/local/bin/caddy /etc/caddy /etc/systemd/system/caddy.service >/dev/null 2>&1
+	apt -y install bc lsof unzip
 }
-
 
 
 #检测域名解析是否正确
@@ -131,7 +188,8 @@ domain_check(){
 		echo -e "${OK} ${GreenBG} 域名dns解析IP  与 本机IP 匹配 域名解析正确 ${Font}"
 		sleep 2
 	else
-		echo -e "${Error} ${RedBG} 域名dns解析IP 与 本机IP 不匹配 是否继续安装？（y/n）${Font}" && read install
+		echo -e "${Error} ${RedBG} 检测到域名dns解析IP与本机IP不匹配 请检查域名解析是否已生效 ${Font}"
+		echo -e "${Error} ${RedBG} 如果使用了 cloudflareCDN 输入y继续安装！（y/n）${Font}" && read install
 		case $install in
 		[yY][eE][sS]|[yY])
 			echo -e "${GreenBG} 继续安装 ${Font}"
@@ -144,6 +202,7 @@ domain_check(){
 		esac
 	fi
 }
+
 
 #检测端口是否占用
 port_exist_check(){
@@ -179,6 +238,7 @@ apt-get install php7.0-cgi php7.0-fpm php7.0-curl php7.0-gd php7.0-mbstring php7
 rm -rf dotdeb.gpg
 }
 
+
 #安装caddy主程序
 caddy_install(){
 	curl https://getcaddy.com | bash -s personal
@@ -198,25 +258,28 @@ EOF
 judge "caddy 安装"
 }
 
+
+# 生成网站默认首页
 default_html(){
 	rm -rf /www
 	mkdir /www
 	touch /www/index.php
 	cat <<EOF > /www/index.php
+提示：Caddy+PHP7+Sqlite3 环境安装成功！<br><br>
+常用命令：<br>
 启动：/etc/init.d/caddy start<br>
 停止：/etc/init.d/caddy stop<br>
-重启：/etc/init.d/caddy restart<br>
+重启：/etc/init.d/caddy restart<br><br>
 查看状态：/etc/init.d/caddy status<br>
-查看Caddy启动日志：tail -f /tmp/caddy.log<br>
+查看Caddy启动日志：tail -f /tmp/caddy.log<br><br>
 安装目录：/usr/local/caddy<br>
-Caddy配置文件位置：/usr/local/caddy/Caddyfile<br>
+Caddy配置文件位置：/usr/local/caddy/Caddyfile<br><br>
 网站根目录 /www
 EOF
 
 	judge "生成默认首页"
 
 }
-
 
 
 #生成caddy配置文件
@@ -251,14 +314,12 @@ EOF
 }
 
 
-
-#修正caddy配置配置文件
+#修正caddy配置文件
 modify_caddy(){
 	sed -i "s/port1/${port1}/g" "${caddy_conf}"
 	sed -i "s/port2/${port2}/g" "${caddy_conf}"
 	sed -i "s/domain/${domain}/g" "${caddy_conf}"
 }
-
 
 
 #检查ssl证书是否生成
@@ -275,8 +336,7 @@ fi
 }
 
 
-
-#展示客户端配置信息
+#展示配置信息
 show_information(){
 	clear
 	echo ""
@@ -296,7 +356,8 @@ show_information(){
 	echo -e "----------------------------------------------------------"
 }
 
-#重启caddy和v2ray程序 加载配置
+
+#重启caddy加载配置
 start_process_systemd(){
 
 	systemctl enable caddy >/dev/null 2>&1
@@ -305,7 +366,8 @@ start_process_systemd(){
 
 }
 
-#安装web伪装站点
+
+#安装typecho
 typecho_install(){
 echo -e "${OK} ${GreenBG} 安装Website伪装站点 ${Font}"
 rm -rf /www
@@ -325,7 +387,7 @@ echo -e "${OK} ${GreenBG} 操作已完成 ${Font}"
 }
 
 
-#安装web伪装站点
+#安装kedexplorer
 kodexplorer_install(){
 echo -e "${OK} ${GreenBG} 安装Website伪装站点 ${Font}"
 rm -rf /www
@@ -345,8 +407,7 @@ echo -e "${OK} ${GreenBG} 操作已完成 ${Font}"
 }
 
 
-
-#安装web伪装站点
+#安装wordpress
 wordpress_install(){
 echo -e "${OK} ${GreenBG} 安装Website伪装站点 ${Font}"
 rm -rf /www
@@ -375,7 +436,7 @@ echo -e "${OK} ${GreenBG} 操作已完成 ${Font}"
 }
 
 
-#安装web伪装站点
+#安装zblog
 zblog_install(){
 echo -e "${OK} ${GreenBG} 安装Website伪装站点 ${Font}"
 rm -rf /www
@@ -396,6 +457,7 @@ echo -e "${OK} ${GreenBG} 操作已完成 ${Font}"
 }
 
 
+#整站备份
 bak_www(){
 rm -rf /www/www.zip
 apt -y install zip
@@ -404,7 +466,6 @@ echo -e "${OK} ${GreenBG} 操作已完成 ${Font}"
 echo -e "${OK} ${GreenBG} 下载地址为：https:\\域名\www.zip ${Font}"
 
 }
-
 
 
 #同步服务器时间
@@ -426,6 +487,7 @@ time_modify(){
 		echo -e "${Error} ${RedBG} 时间同步失败，请检查ntpdate服务是否正常工作 ${Font}"
 	fi 
 }
+
 
 #生成v2ray配置文件
 v2ray_conf_add(){
@@ -463,7 +525,8 @@ EOF
 	judge "V2ray 配置"
 }
 
-#展示客户端配置信息
+
+#展示v2ray客户端配置信息
 v2ray_information(){
 	clear
 	echo ""
@@ -510,11 +573,11 @@ v2ray_install(){
 
 #安装bbr端口加速
 rinetdbbr_install(){
-	echo -e "${Info} ${GreenBG} 【配置 2/3 】请输入连接端口（默认:443 无特殊需求请直接按回车键） ${Font}"
+	echo -e "${Info} ${GreenBG} 请输入连接端口（默认:443 无特殊需求请直接按回车键） ${Font}"
 	stty erase '^H' && read -p "请输入：" port3
 	[[ -z ${port3} ]] && port="443"
 
-	export RINET_URL="https://github.com/dylanbai8/V2Ray_h2-tls_Website_onekey/raw/master/bbr/rinetd_bbr_powered"
+	export RINET_URL="https://github.com/dylanbai8/Onekey_Caddy_PHP7_Sqlite3/raw/master/bbr"
 	IFACE=$(ip -4 addr | awk '{if ($1 ~ /inet/ && $NF ~ /^[ve]/) {a=$NF}} END{print a}')
 
 	curl -L "${RINET_URL}" >/usr/bin/rinetd-bbr
@@ -549,6 +612,7 @@ EOF
 main(){
 	is_root
 	check_system
+	systemd_chack
 	install_hello
 	domain_set
 	apache_uninstall
@@ -563,8 +627,6 @@ main(){
 	show_information
 	start_process_systemd
 }
-
-
 
 
 #Bash执行选项
@@ -591,6 +653,18 @@ if [[ $# > 0 ]];then
 		;;
 		-b|--rinetdbbr_install)
 		rinetdbbr_install
+		;;
+		-unc|--uninstall_caddy)
+		uninstall_caddy
+		;;
+		-unp|--uninstall_php_sqlite)
+		uninstall_php_sqlite
+		;;
+		-unv|--uninstall_v2ray)
+		uninstall_v2ray
+		;;
+		-unb|--uninstall_bbr)
+		uninstall_bbr
 		;;
 	esac
 else
