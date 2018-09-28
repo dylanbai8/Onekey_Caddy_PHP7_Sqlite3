@@ -309,11 +309,11 @@ https://domain:port2 {
     gzip
     tls admin@domain
     root /www
-    fastcgi / /run/php/php7.0-fpm.sock php
     proxy /download localhost:2080 {
         websocket
         header_upstream -Origin
     }
+    fastcgi / /run/php/php7.0-fpm.sock php
 }
 EOF
 
@@ -354,18 +354,18 @@ show_information(){
 	echo -e "${Info} ${GreenBG} 小内存VPS 一键安装 Caddy+PHP7+Sqlite3 环境 （支持VPS最小内存64M） 安装成功 ${Font}"
 	echo -e "----------------------------------------------------------"
 	echo ""
-	echo -e "${Green} 启动：/etc/init.d/caddy start"
-	echo -e "${Green} 停止：/etc/init.d/caddy stop"
-	echo -e "${Green} 重启：/etc/init.d/caddy restart"
+	echo -e "${Green} 启动：${Font} /etc/init.d/caddy start"
+	echo -e "${Green} 停止：${Font} /etc/init.d/caddy stop"
+	echo -e "${Green} 重启：${Font} /etc/init.d/caddy restart"
 	echo ""
-	echo -e "${Green} 查看状态：/etc/init.d/caddy status"
-	echo -e "${Green} 查看Caddy启动日志：tail -f /tmp/caddy.log"
+	echo -e "${Green} 查看状态：${Font} /etc/init.d/caddy status"
+	echo -e "${Green} 查看Caddy启动日志：${Font} tail -f /tmp/caddy.log"
 	echo ""
-	echo -e "${Green} caddy安装目录：/usr/local/caddy"
-	echo -e "${Green} Caddy配置文件位置：/usr/local/caddy/Caddyfile"
+	echo -e "${Green} caddy安装目录：${Font} /usr/local/caddy"
+	echo -e "${Green} Caddy配置文件位置：${Font} /usr/local/caddy/Caddyfile"
 	echo ""
-	echo -e "${Green} 网站首页：https://${domain}"
-	echo -e "${Green} 网站目录：/www"
+	echo -e "${Green} 网站首页：${Font} https://${domain}"
+	echo -e "${Green} 网站目录：${Font} /www"
 	echo -e "----------------------------------------------------------"
 }
 
@@ -546,20 +546,20 @@ v2ray_information(){
 	echo -e "${Info} ${GreenBG} 基于 Caddy+v2ray 的 VMESS+WS+TLS+Website(Use Path) 安装成功 ${Font}"
 	echo -e "----------------------------------------------------------"
 	echo ""
-	echo -e "${Green} 地址（address）：你的域名"
-	echo -e "${Green} 端口（port）：443"
-	echo -e "${Green} 用户ID（id）：${UUID}"
-	echo -e "${Green} 额外ID（alterld）：72"
+	echo -e "${Green} 地址（address）：${Font} 你的域名"
+	echo -e "${Green} 端口（port）：${Font} 443"
+	echo -e "${Green} 用户ID（id）：${Font} ${UUID}"
+	echo -e "${Green} 额外ID（alterld）：${Font} 72"
 	echo ""
-	echo -e "${Green} 加密方式（security）：none"
-	echo -e "${Green} 传输协议（network）：ws"
-	echo -e "${Green} 伪装类型（type）：none"
+	echo -e "${Green} 加密方式（security）：${Font} none"
+	echo -e "${Green} 传输协议（network）：${Font} ws"
+	echo -e "${Green} 伪装类型（type）：${Font} none"
 	echo ""
-	echo -e "${Green} 伪装类型（ws host）：留空"
-	echo -e "${Green} 伪装路径（ws path）：/download"
-	echo -e "${Green} 底层传输安全：tls"
+	echo -e "${Green} 伪装类型（ws host）：${Font} 留空"
+	echo -e "${Green} 伪装路径（ws path）：${Font} /download"
+	echo -e "${Green} 底层传输安全：${Font} tls"
 	echo ""
-	echo -e "${Green} 注意：伪装路径不要少写 / "	
+	echo -e "${Green} 注意：伪装路径不要少写 [ / ] ${Font}"
 	echo -e "----------------------------------------------------------"
 }
 
