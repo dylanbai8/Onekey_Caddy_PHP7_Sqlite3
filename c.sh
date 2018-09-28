@@ -310,10 +310,6 @@ https://domain:port2 {
     tls admin@domain
     root /www
     fastcgi / /run/php/php7.0-fpm.sock php
-    rewrite {
-        if {path} not_match ^\/admin
-        to {path} {path}/ /index.php?{query}
-     }
     proxy /download localhost:2080 {
         websocket
         header_upstream -Origin
