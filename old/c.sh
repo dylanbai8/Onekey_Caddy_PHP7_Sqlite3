@@ -33,7 +33,6 @@ v2ray_conf="${v2ray_conf_dir}/config.json"
 port1="80"
 port2="443"
 
-rinetbbr_url="https://github.com/dylanbai8/Onekey_Caddy_PHP7_Sqlite3/raw/master/bbr"
 
 # 网站源码下载地址 如失效可自行修改
 # ====================================
@@ -613,12 +612,12 @@ rinetdbbr_install(){
 	stty erase '^H' && read -p "请输入：" port3
 	[[ -z ${port3} ]] && port3="443"
 
-	wget -N --no-check-certificate ${rinetbbr_url}
-	mv bbr /usr/bin/rinetd-bbr
+	export RINET_URL="https://github.com/dylanbai8/Onekey_Caddy_PHP7_Sqlite3/raw/master/bbr"
+	IFACE=$(ip -4 addr | awk '{if ($1 ~ /inet/ && $NF ~ /^[ve]/) {a=$NF}} END{print a}')
+
+	curl -L "${RINET_URL}" >/usr/bin/rinetd-bbr
 	chmod +x /usr/bin/rinetd-bbr
 	judge "rinetd-bbr 安装"
-
-	IFACE=$(ip -4 addr | awk '{if ($1 ~ /inet/ && $NF ~ /^[ve]/) {a=$NF}} END{print a}')
 
 	touch /etc/rinetd-bbr.conf
 	cat <<EOF >> /etc/rinetd-bbr.conf
