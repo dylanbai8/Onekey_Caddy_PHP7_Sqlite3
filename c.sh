@@ -77,7 +77,9 @@ install_hello(){
 Default_dir
 if [[ -e ${conf_dir} ]]; then
 
-	echo -e "${Error} ${RedBG} 请勿重复安装环境 ${Font}"
+	clear
+	echo ""
+	echo -e "${Error} ${RedBG} 检测到你已安装环境 请勿重复执行 ${Font}"
 	echo -e "----------------------------------------------------------"
 	echo ""
 	echo -e "${Green} 一键安装 typecho 博客：${Font} bash c.sh -t"
@@ -89,10 +91,11 @@ if [[ -e ${conf_dir} ]]; then
 	echo -e "${Green} 一键安装 v2ray 翻墙：${Font} bash c.sh -v"
 	echo -e "${Green} 一键安装 rinetd bbr 端口加速：${Font} bash c.sh -b"
 	echo ""
-	echo -e "${Green} 卸载 caddy：${Font} bash c.sh -unc"
-	echo -e "${Green} 卸载 php+sqlite：${Font} bash c.sh -unp"
-	echo -e "${Green} 卸载 v2ray：${Font} bash c.sh -unv"
-	echo -e "${Green} 卸载 rinetdbbr：${Font} bash c.sh -unb"
+	echo -e "${Green} 一键卸载 caddy：${Font} bash c.sh -unc"
+	echo -e "${Green} 一键卸载 php+sqlite：${Font} bash c.sh -unp"
+	echo -e "${Green} 一键卸载 v2ray：${Font} bash c.sh -unv"
+	echo -e "${Green} 一键卸载 rinetdbbr：${Font} bash c.sh -unb"
+	echo -e "----------------------------------------------------------"
 	exit 1
 
 else
@@ -156,6 +159,8 @@ judge(){
 
 #设定域名
 domain_set(){
+	clear
+	echo ""
 	echo -e "${Info} ${GreenBG} 请输入你的域名信息(如:www.bing.com)，请确保域名A记录（或AAAA记录）已正确解析至服务器IP（支持IPv6）${Font}"
 	stty erase '^H' && read -p "请输入：" domain
 	[[ -z ${domain} ]] && domain="none"
@@ -754,6 +759,8 @@ if [[ -e ${conf_dir} ]]; then
 	rm -rf ${rinetdbbr_conf_dir}
 	mkdir ${rinetdbbr_conf_dir}
 
+	clear
+	echo ""
 	echo -e "${Info} ${GreenBG} 请输入需要加速的端口（默认:443 无特殊需求请直接按回车键） ${Font}"
 	stty erase '^H' && read -p "请输入：" port3
 	[[ -z ${port3} ]] && port3="443"
