@@ -95,8 +95,8 @@ if [[ -e ${conf_dir} ]]; then
 	echo -e "${Green} 一键卸载 php+sqlite：${Font} bash c.sh -unp"
 	echo -e "${Green} 一键卸载 v2ray：${Font} bash c.sh -unv"
 	echo -e "${Green} 一键卸载 rinetdbbr：${Font} bash c.sh -unb"
-	echo -e "----------------------------------------------------------"
 	echo ""
+	echo -e "----------------------------------------------------------"
 	exit 1
 
 else
@@ -373,7 +373,7 @@ default_html(){
 停止：systemctl stop caddy<br>
 重启：systemctl restart caddy<br><br>
 
-网站根目录 ${wwwroot}
+网站根目录：${wwwroot}
 EOF
 
 	judge "生成默认首页"
@@ -432,8 +432,8 @@ show_information(){
 	echo ""
 	echo -e "${Green} 网站首页：${Font} https://${domain}"
 	echo -e "${Green} 网站目录：${Font} ${wwwroot}"
-	echo -e "----------------------------------------------------------"
 	echo ""
+	echo -e "----------------------------------------------------------"
 }
 
 
@@ -704,8 +704,8 @@ v2ray_information(){
 	echo -e "${Green} 底层传输安全：${Font} tls"
 	echo ""
 	echo -e "${Green} 注意：伪装路径不要少写 [ / ] ${Font}"
-	echo -e "----------------------------------------------------------"
 	echo ""
+	echo -e "----------------------------------------------------------"
 }
 
 
