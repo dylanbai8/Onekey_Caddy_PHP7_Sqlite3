@@ -96,10 +96,13 @@ if [[ -e ${conf_dir} ]]; then
 	echo -e "${Green} 一键卸载 v2ray：${Font} bash c.sh -unv"
 	echo -e "${Green} 一键卸载 rinetdbbr：${Font} bash c.sh -unb"
 	echo -e "----------------------------------------------------------"
+	echo ""
 	exit 1
 
 else
 
+	clear
+	echo ""
 	echo -e "${Info} ${GreenBG} 你正在执行 小内存VPS Caddy+PHP7+Sqlite3 环境（支持VPS最小内存64M）一键安装脚本 ${Font}"
 
 fi
@@ -159,8 +162,6 @@ judge(){
 
 #设定域名
 domain_set(){
-	clear
-	echo ""
 	echo -e "${Info} ${GreenBG} 请输入你的域名信息(如:www.bing.com)，请确保域名A记录（或AAAA记录）已正确解析至服务器IP（支持IPv6）${Font}"
 	stty erase '^H' && read -p "请输入：" domain
 	[[ -z ${domain} ]] && domain="none"
@@ -333,6 +334,7 @@ rm -rf dotdeb.gpg
 
 #安装caddy主程序
 caddy_install(){
+	Default_caddy
 	#caddy官方脚本
 	curl https://getcaddy.com | bash -s personal
 	#添加自启动 加载配置文件
@@ -380,7 +382,6 @@ EOF
 
 #生成caddy配置文件
 caddy_conf_add(){
-	Default_caddy
 	rm -rf ${caddy_conf_dir}
 	mkdir ${caddy_conf_dir}
 	touch ${caddy_conf}
@@ -432,6 +433,7 @@ show_information(){
 	echo -e "${Green} 网站首页：${Font} https://${domain}"
 	echo -e "${Green} 网站目录：${Font} ${wwwroot}"
 	echo -e "----------------------------------------------------------"
+	echo ""
 }
 
 
@@ -703,6 +705,7 @@ v2ray_information(){
 	echo ""
 	echo -e "${Green} 注意：伪装路径不要少写 [ / ] ${Font}"
 	echo -e "----------------------------------------------------------"
+	echo ""
 }
 
 
