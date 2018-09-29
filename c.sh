@@ -24,19 +24,39 @@ OK="${Green}[OK]${Font}"
 Error="${Red}[错误]${Font}"
 
 #定义配置文件路径
-caddy_conf_dir="/etc/caddy"
+Default_dir(){
+conf_dir="/etc/dylanbai8"
+}
+
+Default_caddy(){
+caddy_conf_dir="${conf_dir}/caddy"
 caddy_conf="${caddy_conf_dir}/Caddyfile"
+}
 
-v2ray_conf_dir="/etc/v2ray"
+Default_v2ray(){
+v2ray_conf_dir="${conf_dir}/v2ray"
 v2ray_conf="${v2ray_conf_dir}/config.json"
+}
 
+Default_rinetdbbr(){
+rinetdbbr_conf_dir="${conf_dir}/rinetdbbr"
+rinetdbbr_conf="${rinetdbbr_conf_dir}/config.conf"
+rinetdbbr_url="https://github.com/dylanbai8/Onekey_Caddy_PHP7_Sqlite3/raw/master/bbr"
+}
+
+
+#80端口用于签发验证ssl证书
 port1="80"
+#端口port2可自定义
 port2="443"
 
-rinetbbr_url="https://github.com/dylanbai8/Onekey_Caddy_PHP7_Sqlite3/raw/master/bbr"
+source /etc/os-release
 
-# 网站源码下载地址 如失效可自行修改
+
+# 网站源码下载地址 如失效可自行修改或自定义版本
 # ====================================
+
+wwwroot="${wwwroot}"
 
 typecho_path="https://github.com/typecho/typecho/releases/download/v1.1-17.10.30-release/1.1.17.10.30.-release.tar.gz"
 
@@ -51,11 +71,35 @@ laverna_path="https://github.com/Laverna/static-laverna/archive/gh-pages.zip"
 
 # ====================================
 
-source /etc/os-release
 
 #脚本欢迎语
 install_hello(){
+Default_dir
+if [[ -e ${conf_dir} ]]; then
+
+	echo -e "${Error} ${RedBG} 请勿重复安装环境 ${Font}"
+	echo -e "----------------------------------------------------------"
+	echo ""
+	echo -e "${Green} 一键安装 typecho 博客：${Font} bash c.sh -t"
+	echo -e "${Green} 一键安装 wordpress 博客：${Font} bash c.sh -w"
+	echo -e "${Green} 一键安装 zblog 博客：${Font} bash c.sh -z"
+	echo -e "${Green} 一键安装 kodexplorer 可道云：${Font} bash c.sh -k"
+	echo -e "${Green} 一键安装 laverna 印象笔记：${Font} bash c.sh -l"
+	echo -e "${Green} 一键整站备份：${Font} bash c.sh -a"
+	echo -e "${Green} 一键安装 v2ray 翻墙：${Font} bash c.sh -v"
+	echo -e "${Green} 一键安装 rinetd bbr 端口加速：${Font} bash c.sh -b"
+	echo ""
+	echo -e "${Green} 卸载 caddy：${Font} bash c.sh -unc"
+	echo -e "${Green} 卸载 php+sqlite：${Font} bash c.sh -unp"
+	echo -e "${Green} 卸载 v2ray：${Font} bash c.sh -unv"
+	echo -e "${Green} 卸载 rinetdbbr：${Font} bash c.sh -unb"
+	exit 1
+
+else
+
 	echo -e "${Info} ${GreenBG} 你正在执行 小内存VPS Caddy+PHP7+Sqlite3 环境（支持VPS最小内存64M）一键安装脚本 ${Font}"
+
+fi
 }
 
 
@@ -125,12 +169,19 @@ domain_set(){
 
 #卸载caddy
 uninstall_caddy(){
+Default_dir
+Default_caddy
+
 echo -e "${OK} ${GreenBG} 正在卸载 caddy 请稍后 ... ${Font}"
 systemctl disable caddy >/dev/null 2>&1
 systemctl stop caddy >/dev/null 2>&1
 killall -9 caddy >/dev/null 2>&1
-rm -rf /usr/local/bin/caddy /etc/caddy /etc/systemd/system/caddy.service >/dev/null 2>&1
-rm -rf /www >/dev/null 2>&1
+
+rm -rf /usr/local/bin/caddy
+rm -rf ${caddy_conf_dir}
+rm -rf /etc/systemd/system/caddy.service >/dev/null 2>&1
+
+rm -rf ${wwwroot} >/dev/null 2>&1
 rm -rf /root/.caddy >/dev/null 2>&1
 echo -e "${OK} ${GreenBG} 操作已完成 ${Font}"
 }
@@ -139,31 +190,45 @@ echo -e "${OK} ${GreenBG} 操作已完成 ${Font}"
 #卸载php和sqlite
 uninstall_php_sqlite(){
 echo -e "${OK} ${GreenBG} 正在卸载 php+sqlite 请稍后 ... ${Font}"
-apt -y purge php7.0-cgi php7.0-fpm php7.0-curl php7.0-gd php7.0-mbstring php7.0-xml php7.0-sqlite3 sqlite3 >/dev/null 2>&1
-apt -y purge unzip zip >/dev/null 2>&1
+apt purge php7.0-cgi php7.0-fpm php7.0-curl php7.0-gd php7.0-mbstring php7.0-xml php7.0-sqlite3 sqlite3 -y >/dev/null 2>&1
+apt purge unzip zip -y >/dev/null 2>&1
 echo -e "${OK} ${GreenBG} 操作已完成 ${Font}"
 }
 
 
 #卸载v2ray
 uninstall_v2ray(){
+Default_dir
+Default_v2ray
+
 echo -e "${OK} ${GreenBG} 正在卸载 v2ray 请稍后 ... ${Font}"
 systemctl disable v2ray >/dev/null 2>&1
 systemctl stop v2ray >/dev/null 2>&1
 killall -9 v2ray >/dev/null 2>&1
-rm -rf /usr/bin/v2ray /etc/v2ray /etc/systemd/system/v2ray.service >/dev/null 2>&1
-apt -y purge bc lsof ntpdate >/dev/null 2>&1
+
+rm -rf /usr/bin/v2ray
+rm -rf ${v2ray_conf_dir}
+rm -rf /etc/systemd/system/v2ray.service >/dev/null 2>&1
+
+apt purge bc lsof ntpdate -y >/dev/null 2>&1
 echo -e "${OK} ${GreenBG} 操作已完成 ${Font}"
 }
 
 
 #卸载bbr
 uninstall_bbr(){
+Default_dir
+Default_rinetdbbr
+
 echo -e "${OK} ${GreenBG} 正在卸载 rinetdbbr 请稍后 ... ${Font}"
 systemctl disable rinetd-bbr >/dev/null 2>&1
 systemctl stop rinetd-bbr >/dev/null 2>&1
 killall -9 rinetd-bbr >/dev/null 2>&1
-rm -rf /usr/bin/rinetd-bbr /etc/rinetd-bbr.conf /etc/systemd/system/rinetd-bbr.service >/dev/null 2>&1
+
+rm -rf /usr/bin/rinetd-bbr
+rm -rf ${rinetdbbr_conf_dir}
+rm -rf /etc/systemd/system/rinetd-bbr.service >/dev/null 2>&1
+
 echo -e "${OK} ${GreenBG} 操作已完成 ${Font}"
 }
 
@@ -173,8 +238,11 @@ uninstall_apache2(){
 systemctl disable apache2 >/dev/null 2>&1
 systemctl stop apache2 >/dev/null 2>&1
 killall -9 apache2 >/dev/null 2>&1
+
+rm -rf /etc/apache2
+rm -rf /etc/systemd/system/apache2.service >/dev/null 2>&1
+
 apt purge apache2 -y >/dev/null 2>&1
-rm -rf /etc/apache2 /etc/systemd/system/apache2.service >/dev/null 2>&1
 }
 
 
@@ -186,10 +254,12 @@ apache_uninstall(){
 
 	echo -e "${OK} ${GreenBG} 正在更新源 请稍后 …… ${Font}"
 
-	apt -y update
+	apt update -y
 	judge "系统更新"
-	apt -y install bc lsof unzip curl
+	apt install bc lsof unzip curl -y
 	judge "必要软件 bc lsof unzip curl 安装"
+	Default_dir
+	mkdir ${conf_dir} >/dev/null 2>&1
 }
 
 
@@ -245,12 +315,12 @@ php_sqlite_install(){
 echo "deb http://packages.dotdeb.org jessie all" | tee --append /etc/apt/sources.list
 echo "deb-src http://packages.dotdeb.org jessie all" | tee --append /etc/apt/sources.list
 #添加key
-wget --no-check-certificate https://www.dotdeb.org/dotdeb.gpg
+wget -N --no-check-certificate https:/www.dotdeb.org/dotdeb.gpg
 apt-key add dotdeb.gpg
 #更新系统
 apt update -y
 #安装PHP 7和Sqlite 3
-apt -y install php7.0-cgi php7.0-fpm php7.0-curl php7.0-gd php7.0-mbstring php7.0-xml php7.0-sqlite3 sqlite3
+apt install php7.0-cgi php7.0-fpm php7.0-curl php7.0-gd php7.0-mbstring php7.0-xml php7.0-sqlite3 sqlite3 -y
 	judge "php+sqlite3 安装"
 rm -rf dotdeb.gpg
 }
@@ -258,16 +328,24 @@ rm -rf dotdeb.gpg
 
 #安装caddy主程序
 caddy_install(){
+	#caddy官方脚本
 	curl https://getcaddy.com | bash -s personal
-
+	#添加自启动 加载配置文件
 	touch /etc/systemd/system/caddy.service
 	cat <<EOF > /etc/systemd/system/caddy.service
 [Unit]
 Description=Caddy server
+After=network.target
+Wants=network.target
+
 [Service]
-ExecStart=/usr/local/bin/caddy -conf=/etc/caddy/Caddyfile -agree=true -ca=https://acme-v02.api.letsencrypt.org/directory
+Type=simple
+PIDFile=/var/run/caddy.pid
+ExecStart=/usr/local/bin/caddy -conf=${caddy_conf} -agree=true -ca=https://acme-v02.api.letsencrypt.org/directory
+RestartPreventExitStatus=23
 Restart=always
 User=root
+
 [Install]
 WantedBy=multi-user.target
 EOF
@@ -278,40 +356,37 @@ EOF
 
 # 生成网站默认首页
 default_html(){
-	rm -rf /www
-	mkdir /www
-	touch /www/index.php
-	cat <<EOF > /www/index.php
+	rm -rf ${wwwroot}
+	mkdir ${wwwroot}
+	touch ${wwwroot}/index.php
+	cat <<EOF > ${wwwroot}/index.php
 提示：Caddy+PHP7+Sqlite3 环境安装成功！<br><br>
 常用命令：<br>
-启动：/etc/init.d/caddy start<br>
-停止：/etc/init.d/caddy stop<br>
-重启：/etc/init.d/caddy restart<br><br>
-查看状态：/etc/init.d/caddy status<br>
-查看Caddy启动日志：tail -f /tmp/caddy.log<br><br>
-安装目录：/usr/local/caddy<br>
-Caddy配置文件位置：/usr/local/caddy/Caddyfile<br><br>
-网站根目录 /www
+启动：systemctl start caddy<br>
+停止：systemctl stop caddy<br>
+重启：systemctl restart caddy<br><br>
+
+网站根目录 ${wwwroot}
 EOF
 
 	judge "生成默认首页"
-
 }
 
 
 #生成caddy配置文件
 caddy_conf_add(){
+	Default_caddy
 	rm -rf ${caddy_conf_dir}
 	mkdir ${caddy_conf_dir}
-	touch ${caddy_conf_dir}/Caddyfile
-	cat <<EOF > ${caddy_conf_dir}/Caddyfile
-http://domain:port1 {
-    redir https://domain:port2{url}
+	touch ${caddy_conf}
+	cat <<EOF > ${caddy_conf}
+http://${domain}:${port1} {
+    redir https://${domain}:${port2}{url}
     }
-https://domain:port2 {
+https://${domain}:${port2} {
     gzip
-    tls admin@domain
-    root /www
+    tls admin@${domain}
+    root ${wwwroot}
     proxy /download localhost:2080 {
         websocket
         header_upstream -Origin
@@ -320,19 +395,7 @@ https://domain:port2 {
 }
 EOF
 
-	modify_caddy
 	judge "caddy 配置"
-
-	systemctl daemon-reload
-	systemctl start caddy
-}
-
-
-#修正caddy配置文件
-modify_caddy(){
-	sed -i "s/port1/${port1}/g" "${caddy_conf}"
-	sed -i "s/port2/${port2}/g" "${caddy_conf}"
-	sed -i "s/domain/${domain}/g" "${caddy_conf}"
 }
 
 
@@ -357,24 +420,19 @@ show_information(){
 	echo -e "${Info} ${GreenBG} 小内存VPS 一键安装 Caddy+PHP7+Sqlite3 环境 （支持VPS最小内存64M） 安装成功 ${Font}"
 	echo -e "----------------------------------------------------------"
 	echo ""
-	echo -e "${Green} 启动：${Font} /etc/init.d/caddy start"
-	echo -e "${Green} 停止：${Font} /etc/init.d/caddy stop"
-	echo -e "${Green} 重启：${Font} /etc/init.d/caddy restart"
-	echo ""
-	echo -e "${Green} 查看状态：${Font} /etc/init.d/caddy status"
-	echo -e "${Green} 查看Caddy启动日志：${Font} tail -f /tmp/caddy.log"
-	echo ""
-	echo -e "${Green} caddy安装目录：${Font} /usr/local/caddy"
-	echo -e "${Green} Caddy配置文件位置：${Font} /usr/local/caddy/Caddyfile"
+	echo -e "${Green} 启动：${Font} systemctl start caddy"
+	echo -e "${Green} 停止：${Font} systemctl stop caddy"
+	echo -e "${Green} 重启：${Font} systemctl restart caddy"
 	echo ""
 	echo -e "${Green} 网站首页：${Font} https://${domain}"
-	echo -e "${Green} 网站目录：${Font} /www"
+	echo -e "${Green} 网站目录：${Font} ${wwwroot}"
 	echo -e "----------------------------------------------------------"
 }
 
 
 #重启caddy加载配置
 restart_caddy(){
+	systemctl daemon-reload
 	systemctl enable caddy >/dev/null 2>&1
 	systemctl restart caddy >/dev/null 2>&1
 	judge "Caddy+PHP7+Sqlite3 启动"
@@ -383,130 +441,179 @@ restart_caddy(){
 
 #安装typecho
 typecho_install(){
-echo -e "${OK} ${GreenBG} 正在安装 typecho 到 /www 目录 ${Font}"
-rm -rf /www
-mkdir /www
+Default_dir
+if [[ -e ${conf_dir} ]]; then
+
+echo -e "${OK} ${GreenBG} 正在安装 typecho 到 ${wwwroot} 目录 ${Font}"
+rm -rf ${wwwroot}
+mkdir ${wwwroot}
 
 wget -N --no-check-certificate ${typecho_path} -O typecho.tar.gz
-tar -zxvf typecho.tar.gz -C /www
-mv /www/*build*/* /www
-rm -rf /www/*build*
+tar -zxvf typecho.tar.gz -C ${wwwroot}
+mv ${wwwroot}/*build*/* ${wwwroot}
+rm -rf ${wwwroot}/*build*
 rm -rf typecho.tar.gz
 
-chmod -R 777 /www/
-chmod -R 755 /www/*
-chown www-data:www-data -R /www/*
+chmod -R 777 ${wwwroot}/
+chmod -R 755 ${wwwroot}/*
+chown www-data:www-data -R ${wwwroot}/*
 echo -e "${OK} ${GreenBG} 操作已完成 ${Font}"
 
+else
+	echo -e "${Error} ${RedBG} 请先执行以下命令安装环境 ${Font}"
+	echo -e "${OK} ${GreenBG} wget -N --no-check-certificate git.io/c.sh && chmod +x c.sh && bash c.sh ${Font}"
+	exit 1
+fi
 }
 
 
 #安装wordpress
 wordpress_install(){
-echo -e "${OK} ${GreenBG} 正在安装 wordpress 到 /www 目录 ${Font}"
-rm -rf /www
-mkdir /www
+Default_dir
+if [[ -e ${conf_dir} ]]; then
+
+echo -e "${OK} ${GreenBG} 正在安装 wordpress 到 ${wwwroot} 目录 ${Font}"
+rm -rf ${wwwroot}
+mkdir ${wwwroot}
 
 wget -N --no-check-certificate ${wordpress_path} -O wordpress.tar.gz
-tar -zxvf wordpress.tar.gz -C /www
-mv /www/wordpress/* /www
-rm -rf /www/wordpress
+tar -zxvf wordpress.tar.gz -C ${wwwroot}
+mv ${wwwroot}/wordpress/* ${wwwroot}
+rm -rf ${wwwroot}/wordpress
 rm -rf wordpress.tar.gz
 
-chmod -R 777 /www/
-chmod -R 755 /www/*
-chown www-data:www-data -R /www/*
+chmod -R 777 ${wwwroot}/
+chmod -R 755 ${wwwroot}/*
+chown www-data:www-data -R ${wwwroot}/*
 
 wget -N --no-check-certificate ${wordpress_sqlite} -O sqlite.zip
-unzip sqlite.zip -d /www
-mv /www/wp-config-sample.php /www/wp-config.php
-mv /www/sqlite-integration /www/wp-content/plugins/
-mv /www/wp-content/plugins/sqlite-integration/db.php /www/wp-content/
-sed -i "s/define('DB_COLLATE', '');/define('DB_TYPE', 'sqlite');/g" /www/wp-config.php
+unzip sqlite.zip -d ${wwwroot}
+mv ${wwwroot}/wp-config-sample.php ${wwwroot}/wp-config.php
+mv ${wwwroot}/sqlite-integration ${wwwroot}/wp-content/plugins/
+mv ${wwwroot}/wp-content/plugins/sqlite-integration/db.php ${wwwroot}/wp-content/
+sed -i "s/define('DB_COLLATE', '');/define('DB_TYPE', 'sqlite');/g" ${wwwroot}/wp-config.php
 rm -rf sqlite.zip
 
 echo -e "${OK} ${GreenBG} 操作已完成 ${Font}"
 
+else
+	echo -e "${Error} ${RedBG} 请先执行以下命令安装环境 ${Font}"
+	echo -e "${OK} ${GreenBG} wget -N --no-check-certificate git.io/c.sh && chmod +x c.sh && bash c.sh ${Font}"
+	exit 1
+fi
 }
 
 
 #安装zblog
 zblog_install(){
-echo -e "${OK} ${GreenBG} 正在安装 zblog 到 /www 目录 ${Font}"
-rm -rf /www
-mkdir /www
+Default_dir
+if [[ -e ${conf_dir} ]]; then
+
+echo -e "${OK} ${GreenBG} 正在安装 zblog 到 ${wwwroot} 目录 ${Font}"
+rm -rf ${wwwroot}
+mkdir ${wwwroot}
 
 wget -N --no-check-certificate ${zblog_path} -O zblog.tar.gz
-tar -zxvf zblog.tar.gz -C /www
-mv /www/*zblog*/* /www
-rm -rf /www/*zblog*
+tar -zxvf zblog.tar.gz -C ${wwwroot}
+mv ${wwwroot}/*zblog*/* ${wwwroot}
+rm -rf ${wwwroot}/*zblog*
 rm -rf zblog.tar.gz
 
-chmod -R 777 /www/
-chmod -R 755 /www/*
-chown www-data:www-data -R /www/*
+chmod -R 777 ${wwwroot}/
+chmod -R 755 ${wwwroot}/*
+chown www-data:www-data -R ${wwwroot}/*
 
 echo -e "${OK} ${GreenBG} 操作已完成 ${Font}"
 
+else
+	echo -e "${Error} ${RedBG} 请先执行以下命令安装环境 ${Font}"
+	echo -e "${OK} ${GreenBG} wget -N --no-check-certificate git.io/c.sh && chmod +x c.sh && bash c.sh ${Font}"
+	exit 1
+fi
 }
 
 
 #安装kedexplorer
 kodexplorer_install(){
-echo -e "${OK} ${GreenBG} 正在安装 kedexplorer 到 /www 目录 ${Font}"
-rm -rf /www
-mkdir /www
+Default_dir
+if [[ -e ${conf_dir} ]]; then
+
+echo -e "${OK} ${GreenBG} 正在安装 kedexplorer 到 ${wwwroot} 目录 ${Font}"
+rm -rf ${wwwroot}
+mkdir ${wwwroot}
 
 wget -N --no-check-certificate ${kodcloud_path} -O kodcloud.tar.gz
-tar -zxvf kodcloud.tar.gz -C /www
-mv /www/*KodExplorer*/* /www
-rm -rf /www/*KodExplorer*
+tar -zxvf kodcloud.tar.gz -C ${wwwroot}
+mv ${wwwroot}/*KodExplorer*/* ${wwwroot}
+rm -rf ${wwwroot}/*KodExplorer*
 rm -rf kodcloud.tar.gz
 
-chmod -R 777 /www/
-chmod -R 755 /www/*
-chown www-data:www-data -R /www/*
+chmod -R 777 ${wwwroot}/
+chmod -R 755 ${wwwroot}/*
+chown www-data:www-data -R ${wwwroot}/*
 echo -e "${OK} ${GreenBG} 操作已完成 ${Font}"
 
+else
+	echo -e "${Error} ${RedBG} 请先执行以下命令安装环境 ${Font}"
+	echo -e "${OK} ${GreenBG} wget -N --no-check-certificate git.io/c.sh && chmod +x c.sh && bash c.sh ${Font}"
+	exit 1
+fi
 }
 
 
 #安装laverna
 laverna_install(){
-echo -e "${OK} ${GreenBG} 正在安装 laverna 到 /www 目录 ${Font}"
-rm -rf /www
-mkdir /www
+Default_dir
+if [[ -e ${conf_dir} ]]; then
+
+echo -e "${OK} ${GreenBG} 正在安装 laverna 到 ${wwwroot} 目录 ${Font}"
+rm -rf ${wwwroot}
+mkdir ${wwwroot}
 
 wget -N --no-check-certificate ${laverna_path} -O laverna.zip
-unzip laverna.zip -d /www
+unzip laverna.zip -d ${wwwroot}
 
-mv /www/*laverna*/* /www
-rm -rf /www/*laverna*
+mv ${wwwroot}/*laverna*/* ${wwwroot}
+rm -rf ${wwwroot}/*laverna*
 rm -rf laverna.zip
 
-chmod -R 777 /www/
-chmod -R 755 /www/*
-chown www-data:www-data -R /www/*
+chmod -R 777 ${wwwroot}/
+chmod -R 755 ${wwwroot}/*
+chown www-data:www-data -R ${wwwroot}/*
 echo -e "${OK} ${GreenBG} 操作已完成 ${Font}"
+
+else
+	echo -e "${Error} ${RedBG} 请先执行以下命令安装环境 ${Font}"
+	echo -e "${OK} ${GreenBG} wget -N --no-check-certificate git.io/c.sh && chmod +x c.sh && bash c.sh ${Font}"
+	exit 1
+fi
 }
 
 
 #整站备份
 bak_www(){
+Default_dir
+if [[ -e ${conf_dir} ]]; then
+
 echo -e "${OK} ${GreenBG} 正在整站备份（含数据库） ${Font}"
-rm -rf /www/www.zip
-apt -y install zip
-zip -q -r /www/www.zip /www
+rm -rf ${wwwroot}/www.zip
+apt install zip -y
+zip -q -r ${wwwroot}/www.zip ${wwwroot}
 echo -e "${OK} ${GreenBG} 操作已完成 ${Font}"
 echo -e "${OK} ${GreenBG} 下载地址为：https:\\域名\www.zip ${Font}"
 
+else
+	echo -e "${Error} ${RedBG} 请先执行以下命令安装环境 ${Font}"
+	echo -e "${OK} ${GreenBG} wget -N --no-check-certificate git.io/c.sh && chmod +x c.sh && bash c.sh ${Font}"
+	exit 1
+fi
 }
 
 
 #同步服务器时间
 time_modify(){
 
-	apt -y install ntpdate
+	apt install ntpdate -y
 	judge "安装 NTPdate 时间同步服务 "
 
 	systemctl stop ntp &>/dev/null
@@ -526,8 +633,9 @@ time_modify(){
 
 #生成v2ray配置文件
 v2ray_conf_add(){
-	touch ${v2ray_conf_dir}/config.json
-	cat <<EOF > ${v2ray_conf_dir}/config.json
+	UUID=$(cat /proc/sys/kernel/random/uuid)
+	touch ${v2ray_conf}
+	cat <<EOF > ${v2ray_conf}
 {
   "inbound": {
     "port": 2080,
@@ -536,7 +644,7 @@ v2ray_conf_add(){
     "settings": {
       "clients": [
         {
-          "id": "SETUUID",
+          "id": "${UUID}",
           "alterId": 72
         }
       ]
@@ -555,14 +663,13 @@ v2ray_conf_add(){
 }
 EOF
 
-	UUID=$(cat /proc/sys/kernel/random/uuid)
-	sed -i "s/SETUUID/${UUID}/g" "${v2ray_conf}"
 	judge "V2ray 配置"
 }
 
 
 #重启v2ray加载配置
 restart_v2ray(){
+	systemctl daemon-reload
 	systemctl enable v2ray >/dev/null 2>&1
 	systemctl restart v2ray >/dev/null 2>&1
 	judge "V2ray 启动"
@@ -596,43 +703,88 @@ v2ray_information(){
 
 #安装v2ray主程序
 v2ray_install(){
+Default_dir
+if [[ -e ${conf_dir} ]]; then
+
 	time_modify
-	wget -N --no-check-certificate https://install.direct/go.sh && chmod +x go.sh && bash go.sh --force
+	Default_v2ray
+	rm -rf ${v2ray_conf_dir}
+	mkdir ${v2ray_conf_dir}
+
+	bash <(curl -L -s https://install.direct/go.sh)
 	judge "安装 V2ray"
-	rm -rf go.sh
+
+	touch /etc/systemd/system/v2ray.service
+	cat <<EOF > /etc/systemd/system/v2ray.service
+[Unit]
+Description=V2Ray Service
+After=network.target
+Wants=network.target
+
+[Service]
+Type=simple
+PIDFile=/var/run/v2ray.pid
+ExecStart=/usr/bin/v2ray/v2ray -config ${v2ray_conf}
+RestartPreventExitStatus=23
+Restart=always
+User=root
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
 	v2ray_conf_add
 	v2ray_information
 	restart_v2ray
+
+else
+	echo -e "${Error} ${RedBG} 请先执行以下命令安装环境 ${Font}"
+	echo -e "${OK} ${GreenBG} wget -N --no-check-certificate git.io/c.sh && chmod +x c.sh && bash c.sh ${Font}"
+	exit 1
+fi
 }
 
 
 #安装bbr端口加速
 rinetdbbr_install(){
-	uninstall_bbr >/dev/null 2>&1
+Default_dir
+if [[ -e ${conf_dir} ]]; then
+
+	Default_rinetdbbr
+	rm -rf ${rinetdbbr_conf_dir}
+	mkdir ${rinetdbbr_conf_dir}
+
 	echo -e "${Info} ${GreenBG} 请输入需要加速的端口（默认:443 无特殊需求请直接按回车键） ${Font}"
 	stty erase '^H' && read -p "请输入：" port3
 	[[ -z ${port3} ]] && port3="443"
 
-	wget -N --no-check-certificate ${rinetbbr_url}
-	mv bbr /usr/bin/rinetd-bbr
+	wget -N --no-check-certificate ${rinetdbbr_url} -O rinetdbbr
+	mv rinetdbbr /usr/bin/rinetd-bbr
 	chmod +x /usr/bin/rinetd-bbr
 	judge "rinetd-bbr 安装"
 
 	IFACE=$(ip -4 addr | awk '{if ($1 ~ /inet/ && $NF ~ /^[ve]/) {a=$NF}} END{print a}')
 
-	touch /etc/rinetd-bbr.conf
-	cat <<EOF >> /etc/rinetd-bbr.conf
+	touch ${rinetdbbr_conf_dir}
+	cat <<EOF >> ${rinetdbbr_conf_dir}
 0.0.0.0 ${port3} 0.0.0.0 ${port3}
 EOF
 
 	touch /etc/systemd/system/rinetd-bbr.service
 	cat <<EOF > /etc/systemd/system/rinetd-bbr.service
 [Unit]
-Description=rinetd with bbr
+Description=Rinetdbbr Service
+After=network.target
+Wants=network.target
+
 [Service]
-ExecStart=/usr/bin/rinetd-bbr -f -c /etc/rinetd-bbr.conf raw ${IFACE}
+Type=simple
+PIDFile=/var/run/rinetd-bbr.pid
+ExecStart=/usr/bin/rinetd-bbr -f -c ${rinetdbbr_conf_dir} raw ${IFACE}
+RestartPreventExitStatus=23
 Restart=always
 User=root
+
 [Install]
 WantedBy=multi-user.target
 EOF
@@ -641,6 +793,12 @@ EOF
 	systemctl enable rinetd-bbr >/dev/null 2>&1
 	systemctl start rinetd-bbr
 	judge "加速端口：${port3} rinetd-bbr 启动"
+
+else
+	echo -e "${Error} ${RedBG} 请先执行以下命令安装环境 ${Font}"
+	echo -e "${OK} ${GreenBG} wget -N --no-check-certificate git.io/c.sh && chmod +x c.sh && bash c.sh ${Font}"
+	exit 1
+fi
 }
 
 
