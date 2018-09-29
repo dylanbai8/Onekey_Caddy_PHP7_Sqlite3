@@ -56,7 +56,7 @@ source /etc/os-release
 # 网站源码下载地址 如失效可自行修改或自定义版本
 # ====================================
 
-wwwroot="${wwwroot}"
+wwwroot="/www"
 
 typecho_path="https://github.com/typecho/typecho/releases/download/v1.1-17.10.30-release/1.1.17.10.30.-release.tar.gz"
 
