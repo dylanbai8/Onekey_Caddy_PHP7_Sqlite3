@@ -44,6 +44,10 @@ rinetdbbr_conf="${rinetdbbr_conf_dir}/config.conf"
 rinetdbbr_url="https://github.com/dylanbai8/Onekey_Caddy_PHP7_Sqlite3/raw/master/bbr"
 }
 
+win64_source(){
+bat_url="https://raw.githubusercontent.com/dylanbai8/Onekey_Caddy_PHP7_Sqlite3/master/bat"
+exe_url="https://raw.githubusercontent.com/dylanbai8/Onekey_Caddy_PHP7_Sqlite3/master/exe"
+}
 
 #80端口用于签发验证ssl证书
 port1="80"
@@ -121,12 +125,47 @@ is_root(){
 }
 
 
+#更新源
+add_source7(){
+echo -e "${OK} ${GreenBG} 正在为 Debian7 更新源 ${Font}"
+apt update -y
+apt install curl -y
+curl https://www.dotdeb.org/dotdeb.gpg | apt-key add -
+echo "deb http://packages.dotdeb.org wheezy all" >> /etc/apt/sources.list
+echo "deb-src http://packages.dotdeb.org wheezy all" >> /etc/apt/sources.list
+apt update -y
+}
+
+add_source8(){
+echo -e "${OK} ${GreenBG} 正在为 Debian8 更新源 ${Font}"
+apt update -y
+apt install curl -y
+curl https://www.dotdeb.org/dotdeb.gpg | apt-key add -
+echo "deb http://packages.dotdeb.org jessie all" >> /etc/apt/sources.list
+echo "deb-src http://packages.dotdeb.org jessie all" >> /etc/apt/sources.list
+apt update -y
+}
+
+add_source9(){
+echo -e "${OK} ${GreenBG} 正在为 Debian9 更新源 ${Font}"
+apt update -y
+apt install curl -y
+}
+
+
 #检测系统版本
 check_system(){
 	VERSION=`echo ${VERSION} | awk -F "[()]" '{print $2}'`
 
-	if [[ "${ID}" == "debian" && ${VERSION_ID} -ge 8 ]];then
+	if [[ "${ID}" == "debian" && ${VERSION_ID} -ge 7 && ${VERSION_ID} -lt 8 ]];then
 		echo -e "${OK} ${GreenBG} 当前系统为 Debian ${VERSION_ID} ${VERSION} ${Font}"
+		add_source="add_source7"
+	elif [[ "${ID}" == "debian" && ${VERSION_ID} -ge 8 && ${VERSION_ID} -lt 9 ]];then
+		echo -e "${OK} ${GreenBG} 当前系统为 Debian ${VERSION_ID} ${VERSION} ${Font}"
+		add_source="add_source8"
+	elif [[ "${ID}" == "debian" && ${VERSION_ID} -ge 9 ]];then
+		echo -e "${OK} ${GreenBG} 当前系统为 Debian ${VERSION_ID} ${VERSION} ${Font}"
+		add_source="add_source9"
 	else
 		echo -e "${Error} ${RedBG} 当前系统为 ${ID} ${VERSION_ID} 不在支持的系统列表内，安装中断 ${Font}"
 		exit 1
@@ -168,7 +207,15 @@ domain_set(){
 	if [ "${domain}" = "none" ];then
 		domain_set
 	else
-		echo -e "${OK} ${GreenBG} 你设置的域名为：${domain} ${Font}"
+	echo -e "${OK} ${GreenBG} 你设置的域名为：${domain} ${Font}"
+	touch ${conf_dir}/domain.txt
+	cat <<EOF > ${conf_dir}/domain.txt
+${domain}
+EOF
+	touch ${conf_dir}/port2.txt
+	cat <<EOF > ${conf_dir}/port2.txt
+${port2}
+EOF
 	fi
 }
 
@@ -260,10 +307,12 @@ apache_uninstall(){
 
 	echo -e "${OK} ${GreenBG} 正在更新源 请稍后 …… ${Font}"
 
-	apt update -y
+	${add_source}
 	judge "系统更新"
-	apt install bc lsof unzip curl -y
-	judge "必要软件 bc lsof unzip curl 安装"
+
+	apt install bc lsof unzip -y
+	judge "必要软件 bc lsof unzip 安装"
+
 	Default_dir
 	mkdir ${conf_dir} >/dev/null 2>&1
 }
@@ -316,19 +365,8 @@ port_exist_check(){
 
 #安装 PHP7 和 Sqlite3
 php_sqlite_install(){
-#Debian 8系统
-#添加源
-echo "deb http://packages.dotdeb.org jessie all" | tee --append /etc/apt/sources.list
-echo "deb-src http://packages.dotdeb.org jessie all" | tee --append /etc/apt/sources.list
-#添加key
-wget --no-check-certificate https:/www.dotdeb.org/dotdeb.gpg
-apt-key add dotdeb.gpg
-#更新系统
-apt update -y
-#安装PHP 7和Sqlite 3
-apt install php7.0-cgi php7.0-fpm php7.0-curl php7.0-gd php7.0-mbstring php7.0-xml php7.0-sqlite3 sqlite3 -y
+	apt install php7.0-cgi php7.0-fpm php7.0-curl php7.0-gd php7.0-mbstring php7.0-xml php7.0-sqlite3 sqlite3 -y
 	judge "php+sqlite3 安装"
-rm -rf dotdeb.gpg
 }
 
 
@@ -430,7 +468,7 @@ show_information(){
 	echo -e "${Green} 停止：${Font} systemctl stop caddy"
 	echo -e "${Green} 重启：${Font} systemctl restart caddy"
 	echo ""
-	echo -e "${Green} 网站首页：${Font} https://${domain}"
+	echo -e "${Green} 网站首页：${Font} http://${domain}"
 	echo -e "${Green} 网站目录：${Font} ${wwwroot}"
 	echo ""
 	echo -e "----------------------------------------------------------"
@@ -464,7 +502,10 @@ rm -rf typecho.tar.gz
 chmod -R 777 ${wwwroot}/
 chmod -R 755 ${wwwroot}/*
 chown www-data:www-data -R ${wwwroot}/*
+
 echo -e "${OK} ${GreenBG} 操作已完成 ${Font}"
+getdomain=$(cat ${conf_dir}/domain.txt)
+echo -e "${OK} ${GreenBG} 访问网站首页查看 http://${getdomain} ${Font}"
 
 else
 	echo -e "${Error} ${RedBG} 请先执行以下命令安装环境 ${Font}"
@@ -502,6 +543,8 @@ sed -i "s/define('DB_COLLATE', '');/define('DB_TYPE', 'sqlite');/g" ${wwwroot}/w
 rm -rf sqlite.zip
 
 echo -e "${OK} ${GreenBG} 操作已完成 ${Font}"
+getdomain=$(cat ${conf_dir}/domain.txt)
+echo -e "${OK} ${GreenBG} 访问网站首页查看 http://${getdomain} ${Font}"
 
 else
 	echo -e "${Error} ${RedBG} 请先执行以下命令安装环境 ${Font}"
@@ -531,6 +574,8 @@ chmod -R 755 ${wwwroot}/*
 chown www-data:www-data -R ${wwwroot}/*
 
 echo -e "${OK} ${GreenBG} 操作已完成 ${Font}"
+getdomain=$(cat ${conf_dir}/domain.txt)
+echo -e "${OK} ${GreenBG} 访问网站首页查看 http://${getdomain} ${Font}"
 
 else
 	echo -e "${Error} ${RedBG} 请先执行以下命令安装环境 ${Font}"
@@ -558,7 +603,10 @@ rm -rf kodcloud.tar.gz
 chmod -R 777 ${wwwroot}/
 chmod -R 755 ${wwwroot}/*
 chown www-data:www-data -R ${wwwroot}/*
+
 echo -e "${OK} ${GreenBG} 操作已完成 ${Font}"
+getdomain=$(cat ${conf_dir}/domain.txt)
+echo -e "${OK} ${GreenBG} 访问网站首页查看 http://${getdomain} ${Font}"
 
 else
 	echo -e "${Error} ${RedBG} 请先执行以下命令安装环境 ${Font}"
@@ -587,7 +635,10 @@ rm -rf laverna.zip
 chmod -R 777 ${wwwroot}/
 chmod -R 755 ${wwwroot}/*
 chown www-data:www-data -R ${wwwroot}/*
+
 echo -e "${OK} ${GreenBG} 操作已完成 ${Font}"
+getdomain=$(cat ${conf_dir}/domain.txt)
+echo -e "${OK} ${GreenBG} 访问网站首页查看 http://${getdomain} ${Font}"
 
 else
 	echo -e "${Error} ${RedBG} 请先执行以下命令安装环境 ${Font}"
@@ -607,7 +658,7 @@ rm -rf ${wwwroot}/www.zip
 apt install zip -y
 zip -q -r ${wwwroot}/www.zip ${wwwroot}
 echo -e "${OK} ${GreenBG} 操作已完成 ${Font}"
-echo -e "${OK} ${GreenBG} 下载地址为：https:\\域名\www.zip ${Font}"
+echo -e "${OK} ${GreenBG} 下载地址为：http:\\域名\www.zip ${Font}"
 
 else
 	echo -e "${Error} ${RedBG} 请先执行以下命令安装环境 ${Font}"
@@ -690,8 +741,8 @@ v2ray_information(){
 	echo -e "${Info} ${GreenBG} 基于 Caddy+v2ray 的 VMESS+WS+TLS+Website(Use Path) 安装成功 ${Font}"
 	echo -e "----------------------------------------------------------"
 	echo ""
-	echo -e "${Green} 地址（address）：${Font} 你的域名"
-	echo -e "${Green} 端口（port）：${Font} 443"
+	echo -e "${Green} 地址（address）：${Font} ${getdomain}"
+	echo -e "${Green} 端口（port）：${Font} ${getport2}"
 	echo -e "${Green} 用户ID（id）：${Font} ${UUID}"
 	echo -e "${Green} 额外ID（alterld）：${Font} 72"
 	echo ""
@@ -704,8 +755,179 @@ v2ray_information(){
 	echo -e "${Green} 底层传输安全：${Font} tls"
 	echo ""
 	echo -e "${Green} 注意：伪装路径不要少写 [ / ] ${Font}"
+	echo -e "${Green} Windows系统64位客户端下载：${Font} http:\\${getdomain}\V2rayPro.zip"
 	echo ""
 	echo -e "----------------------------------------------------------"
+}
+
+
+#生成v2ray客户端json文件
+v2ray_user_config(){
+
+	Default_dir
+	getdomain=$(cat ${conf_dir}/domain.txt)
+	getport2=$(cat ${conf_dir}/port2.txt)
+	getuuid=$(cat ${conf_dir}/uuid.txt)
+
+	touch /root/V2rayPro/v2ray/config.json
+	cat <<EOF > /root/V2rayPro/v2ray/config.json
+{
+	"log": {
+		"loglevel": "info",
+		"access": "",
+		"error": ""
+	},
+	"dns": {
+		"servers": [
+			"8.8.8.8",
+			"1.1.1.1",
+			"119.29.29.29",
+			"114.114.114.114"
+		]
+	},
+	"inbound": {
+		"port": 1087,
+		"listen": "127.0.0.1",
+		"protocol": "http",
+		"settings": {
+			"timeout": 360
+		}
+	},
+	"inboundDetour": [
+		{
+			"port": 1080,
+			"listen": "127.0.0.1",
+			"protocol": "socks",
+			"settings": {
+				"auth": "noauth",
+				"timeout": 360,
+				"udp": true
+			}
+		}
+	],
+	"outbound": {
+		"tag": "agentout",
+		"protocol": "vmess",
+		"mux": {
+			"enabled": true,
+			"concurrency": 6
+		},
+        "streamSettings": {
+            "network": "ws",
+            "wsSettings": {
+            "path": "/download"
+            }
+        },
+		"settings": {
+			"vnext": [
+				{
+					"port": ${getport2},
+					"address": "${getdomain}",
+					"users": [
+						{
+							"alterId": 72,
+							"id": "${getuuid}"
+						}
+					]
+				}
+			]
+		}
+	},
+	"outboundDetour": [
+		{
+			"tag": "direct",
+			"protocol": "freedom",
+			"settings": {
+				"response": null
+			}
+		},
+		{
+			"tag": "blockout",
+			"protocol": "blackhole",
+			"settings": {
+				"response": {
+					"type": "http"
+				}
+			}
+		}
+	],
+	"routing": {
+		"strategy": "rules",
+		"settings": {
+			"domainStrategy": "IPIfNonMatch",
+			"rules": [
+				{
+					"type": "field",
+					"outboundTag": "agentout",
+					"ip": [
+						"8.8.8.8",
+						"1.1.1.1"
+					]
+				},
+				{
+					"type": "field",
+					"outboundTag": "direct",
+					"ip": [
+						"119.29.29.29",
+						"114.114.114.114"
+					]
+				},
+				{
+					"type": "field",
+					"outboundTag": "direct",
+					"ip": [
+						"geoip:private"
+					]
+				},
+				{
+					"type": "field",
+					"outboundTag": "direct",
+					"domain": [
+						"geosite:cn"
+					]
+				},
+				{
+					"type": "field",
+					"outboundTag": "direct",
+					"ip": [
+						"geoip:cn"
+					]
+				}
+			]
+		}
+	}
+}
+EOF
+
+judge "客户端json配置"
+}
+
+
+#生成Windows客户端
+win64_v2ray(){
+	win64_source
+	TAG_URL="https://api.github.com/repos/v2ray/v2ray-core/releases/latest"
+	NEW_VER=`curl -s ${TAG_URL} --connect-timeout 10| grep 'tag_name' | cut -d\" -f4`
+
+	echo -e "${OK} ${GreenBG} 正在生成Windows客户端 v2ray-core最新版本 ${NEW_VER} ${Font}"
+	rm -rf /root/V2rayPro
+	mkdir /root/V2rayPro
+	wget --no-check-certificate https://github.com/v2ray/v2ray-core/releases/download/${NEW_VER}/v2ray-windows-64.zip -O v2ray.zip
+	unzip v2ray.zip
+	mv v2ray /root/V2rayPro
+	wget --no-check-certificate ${bat_url} -O start.bat
+	mv start.bat /root/V2rayPro
+	wget --no-check-certificate ${exe_url} -O wv2ray-service.exe
+	mv wv2ray-service.exe /root/V2rayPro/v2ray
+
+	v2ray_user_config
+
+	echo -e "${OK} ${GreenBG} 正在打包 v2ray-windows-64 客户端 ${Font}"
+
+	apt install zip -y
+	zip -q -r ${wwwroot}/V2rayPro.zip /root/V2rayPro
+	rm -rf v2ray.zip
+	rm -rf /root/V2rayPro
 }
 
 
@@ -742,6 +964,7 @@ WantedBy=multi-user.target
 EOF
 
 	v2ray_conf_add
+	win64_v2ray
 	v2ray_information
 	restart_v2ray
 
@@ -762,11 +985,7 @@ if [[ -e ${conf_dir} ]]; then
 	rm -rf ${rinetdbbr_conf_dir}
 	mkdir ${rinetdbbr_conf_dir}
 
-	clear
-	echo ""
-	echo -e "${Info} ${GreenBG} 请输入需要加速的端口（默认:443 无特殊需求请直接按回车键） ${Font}"
-	stty erase '^H' && read -p "请输入：" port3
-	[[ -z ${port3} ]] && port3="443"
+	getport2=$(cat ${conf_dir}/port2.txt)
 
 	wget --no-check-certificate ${rinetdbbr_url} -O rinetdbbr
 	mv rinetdbbr /usr/bin/rinetd-bbr
@@ -777,7 +996,7 @@ if [[ -e ${conf_dir} ]]; then
 
 	touch ${rinetdbbr_conf}
 	cat <<EOF >> ${rinetdbbr_conf}
-0.0.0.0 ${port3} 0.0.0.0 ${port3}
+0.0.0.0 ${getport2} 0.0.0.0 ${getport2}
 EOF
 
 	touch /etc/systemd/system/rinetd-bbr.service
@@ -802,7 +1021,7 @@ EOF
 
 	systemctl enable rinetd-bbr >/dev/null 2>&1
 	systemctl start rinetd-bbr
-	judge "加速端口：${port3} rinetd-bbr 启动"
+	judge "加速端口：${getport2} rinetd-bbr 启动"
 
 else
 	echo -e "${Error} ${RedBG} 请先执行以下命令安装环境 ${Font}"
