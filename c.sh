@@ -194,6 +194,7 @@ judge(){
 		sleep 1
 	else
 		echo -e "${Error} ${RedBG} $1 失败 ${Font}"
+		echo -e "${Info} ${GreenBG} $1 反馈地址：https://git.io/issues4c.sh ${Font}"
 		exit 1
 	fi
 }
@@ -424,17 +425,17 @@ caddy_conf_add(){
 	touch ${caddy_conf}
 	cat <<EOF > ${caddy_conf}
 http://${domain}:${port1} {
-    redir https://${domain}:${port2}{url}
-    }
+	redir https://${domain}:${port2}{url}
+	}
 https://${domain}:${port2} {
-    gzip
-    tls admin@${domain}
-    root ${wwwroot}
-    proxy /download localhost:2080 {
-        websocket
-        header_upstream -Origin
-    }
-    fastcgi / /run/php/php7.0-fpm.sock php
+	gzip
+	tls admin@${domain}
+	root ${wwwroot}
+	proxy /download localhost:2080 {
+		websocket
+		header_upstream -Origin
+	}
+	fastcgi / /run/php/php7.0-fpm.sock php
 }
 EOF
 
@@ -695,27 +696,27 @@ v2ray_conf_add(){
 	cat <<EOF > ${v2ray_conf}
 {
   "inbound": {
-    "port": 2080,
-    "listen":"127.0.0.1",
-    "protocol": "vmess",
-    "settings": {
-      "clients": [
-        {
-          "id": "${UUID}",
-          "alterId": 72
-        }
-      ]
-    },
-    "streamSettings": {
-      "network": "ws",
-      "wsSettings": {
-      "path": "/download"
-      }
-    }
+	"port": 2080,
+	"listen":"127.0.0.1",
+	"protocol": "vmess",
+	"settings": {
+	  "clients": [
+		{
+		  "id": "${UUID}",
+		  "alterId": 72
+		}
+	  ]
+	},
+	"streamSettings": {
+	  "network": "ws",
+	  "wsSettings": {
+	  "path": "/download"
+	  }
+	}
   },
   "outbound": {
-    "protocol": "freedom",
-    "settings": {}
+	"protocol": "freedom",
+	"settings": {}
   }
 }
 EOF
@@ -811,12 +812,12 @@ v2ray_user_config(){
 			"enabled": true,
 			"concurrency": 6
 		},
-        "streamSettings": {
-            "network": "ws",
-            "wsSettings": {
-            "path": "/download"
-            }
-        },
+		"streamSettings": {
+			"network": "ws",
+			"wsSettings": {
+			"path": "/download"
+			}
+		},
 		"settings": {
 			"vnext": [
 				{
@@ -911,13 +912,14 @@ win64_v2ray(){
 	echo -e "${OK} ${GreenBG} 正在生成Windows客户端 v2ray-core最新版本 ${NEW_VER} ${Font}"
 	rm -rf /root/V2rayPro
 	mkdir /root/V2rayPro
+	mkdir /root/V2rayPro/v2ray
 	wget --no-check-certificate https://github.com/v2ray/v2ray-core/releases/download/${NEW_VER}/v2ray-windows-64.zip -O v2ray.zip
 	unzip v2ray.zip
-	mv v2ray /root/V2rayPro
+	mv *windows*/* /root/V2rayPro/v2ray
 	wget --no-check-certificate ${bat_url} -O start.bat
-	mv start.bat /root/V2rayPro
+	mv start.bat /root/V2rayPro/start.bat
 	wget --no-check-certificate ${exe_url} -O wv2ray-service.exe
-	mv wv2ray-service.exe /root/V2rayPro/v2ray
+	mv wv2ray-service.exe /root/V2rayPro/v2ray/wv2ray-service.exe
 
 	v2ray_user_config
 
@@ -925,8 +927,10 @@ win64_v2ray(){
 
 	apt install zip -y
 	zip -q -r ${wwwroot}/V2rayPro.zip /root/V2rayPro
+	judge "Windows 客户端打包成功"
+
 	rm -rf v2ray.zip
-	rm -rf /root/V2rayPro
+	rm -rf *windows*
 }
 
 
