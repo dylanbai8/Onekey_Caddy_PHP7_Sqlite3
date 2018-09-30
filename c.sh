@@ -656,8 +656,10 @@ echo -e "${OK} ${GreenBG} 正在整站备份（含数据库） ${Font}"
 rm -rf ${wwwroot}/www.zip
 apt install zip -y
 zip -q -r ${wwwroot}/www.zip ${wwwroot}
+
+getdomain=$(cat ${conf_dir}/domain.txt)
 echo -e "${OK} ${GreenBG} 操作已完成 ${Font}"
-echo -e "${OK} ${GreenBG} 下载地址为：http:\\域名\www.zip ${Font}"
+echo -e "${OK} ${GreenBG} 下载地址为：http:\\${getdomain}\www.zip ${Font}"
 
 else
 	echo -e "${Error} ${RedBG} 请先执行以下命令安装环境 ${Font}"
@@ -789,7 +791,7 @@ v2ray_user_config(){
 		  "port": ${getport2},
 		  "users": [
 			{
-			  "id": "UUID",
+			  "id": "${UUID}",
 			  "alterId": 72
 			}
 		  ]
