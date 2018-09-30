@@ -183,8 +183,8 @@ systemctl disable caddy >/dev/null 2>&1
 systemctl stop caddy >/dev/null 2>&1
 killall -9 caddy >/dev/null 2>&1
 
-rm -rf /usr/local/bin/caddy
-rm -rf ${caddy_conf_dir}
+rm -rf /usr/local/bin/caddy >/dev/null 2>&1
+rm -rf ${caddy_conf_dir} >/dev/null 2>&1
 rm -rf /etc/systemd/system/caddy.service >/dev/null 2>&1
 
 rm -rf ${wwwroot} >/dev/null 2>&1
@@ -212,8 +212,8 @@ systemctl disable v2ray >/dev/null 2>&1
 systemctl stop v2ray >/dev/null 2>&1
 killall -9 v2ray >/dev/null 2>&1
 
-rm -rf /usr/bin/v2ray
-rm -rf ${v2ray_conf_dir}
+rm -rf /usr/bin/v2ray >/dev/null 2>&1
+rm -rf ${v2ray_conf_dir} >/dev/null 2>&1
 rm -rf /etc/systemd/system/v2ray.service >/dev/null 2>&1
 
 apt purge bc lsof ntpdate -y >/dev/null 2>&1
@@ -231,8 +231,8 @@ systemctl disable rinetd-bbr >/dev/null 2>&1
 systemctl stop rinetd-bbr >/dev/null 2>&1
 killall -9 rinetd-bbr >/dev/null 2>&1
 
-rm -rf /usr/bin/rinetd-bbr
-rm -rf ${rinetdbbr_conf_dir}
+rm -rf /usr/bin/rinetd-bbr >/dev/null 2>&1
+rm -rf ${rinetdbbr_conf_dir} >/dev/null 2>&1
 rm -rf /etc/systemd/system/rinetd-bbr.service >/dev/null 2>&1
 
 echo -e "${OK} ${GreenBG} 操作已完成 ${Font}"
@@ -245,7 +245,7 @@ systemctl disable apache2 >/dev/null 2>&1
 systemctl stop apache2 >/dev/null 2>&1
 killall -9 apache2 >/dev/null 2>&1
 
-rm -rf /etc/apache2
+rm -rf /etc/apache2 >/dev/null 2>&1
 rm -rf /etc/systemd/system/apache2.service >/dev/null 2>&1
 
 apt purge apache2 -y >/dev/null 2>&1
@@ -598,7 +598,7 @@ fi
 
 
 #整站备份
-bak_www(){
+bak_wwwroot(){
 Default_dir
 if [[ -e ${conf_dir} ]]; then
 
@@ -852,8 +852,8 @@ if [[ $# > 0 ]];then
 		-l|--laverna_install)
 		laverna_install
 		;;
-		-a|--bak_www)
-		bak_www
+		-a|--bak_wwwroot)
+		bak_wwwroot
 		;;
 		-v|--v2ray_install)
 		v2ray_install
