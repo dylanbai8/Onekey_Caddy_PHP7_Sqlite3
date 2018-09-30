@@ -321,7 +321,7 @@ php_sqlite_install(){
 echo "deb http://packages.dotdeb.org jessie all" | tee --append /etc/apt/sources.list
 echo "deb-src http://packages.dotdeb.org jessie all" | tee --append /etc/apt/sources.list
 #添加key
-wget -N --no-check-certificate https:/www.dotdeb.org/dotdeb.gpg
+wget --no-check-certificate https:/www.dotdeb.org/dotdeb.gpg
 apt-key add dotdeb.gpg
 #更新系统
 apt update -y
@@ -455,7 +455,7 @@ echo -e "${OK} ${GreenBG} 正在安装 typecho 到 ${wwwroot} 目录 ${Font}"
 rm -rf ${wwwroot}
 mkdir ${wwwroot}
 
-wget -N --no-check-certificate ${typecho_path} -O typecho.tar.gz
+wget --no-check-certificate ${typecho_path} -O typecho.tar.gz
 tar -zxvf typecho.tar.gz -C ${wwwroot}
 mv ${wwwroot}/*build*/* ${wwwroot}
 rm -rf ${wwwroot}/*build*
@@ -483,7 +483,7 @@ echo -e "${OK} ${GreenBG} 正在安装 wordpress 到 ${wwwroot} 目录 ${Font}"
 rm -rf ${wwwroot}
 mkdir ${wwwroot}
 
-wget -N --no-check-certificate ${wordpress_path} -O wordpress.tar.gz
+wget --no-check-certificate ${wordpress_path} -O wordpress.tar.gz
 tar -zxvf wordpress.tar.gz -C ${wwwroot}
 mv ${wwwroot}/wordpress/* ${wwwroot}
 rm -rf ${wwwroot}/wordpress
@@ -493,7 +493,7 @@ chmod -R 777 ${wwwroot}/
 chmod -R 755 ${wwwroot}/*
 chown www-data:www-data -R ${wwwroot}/*
 
-wget -N --no-check-certificate ${wordpress_sqlite} -O sqlite.zip
+wget --no-check-certificate ${wordpress_sqlite} -O sqlite.zip
 unzip sqlite.zip -d ${wwwroot}
 mv ${wwwroot}/wp-config-sample.php ${wwwroot}/wp-config.php
 mv ${wwwroot}/sqlite-integration ${wwwroot}/wp-content/plugins/
@@ -520,7 +520,7 @@ echo -e "${OK} ${GreenBG} 正在安装 zblog 到 ${wwwroot} 目录 ${Font}"
 rm -rf ${wwwroot}
 mkdir ${wwwroot}
 
-wget -N --no-check-certificate ${zblog_path} -O zblog.tar.gz
+wget --no-check-certificate ${zblog_path} -O zblog.tar.gz
 tar -zxvf zblog.tar.gz -C ${wwwroot}
 mv ${wwwroot}/*zblog*/* ${wwwroot}
 rm -rf ${wwwroot}/*zblog*
@@ -549,7 +549,7 @@ echo -e "${OK} ${GreenBG} 正在安装 kedexplorer 到 ${wwwroot} 目录 ${Font}
 rm -rf ${wwwroot}
 mkdir ${wwwroot}
 
-wget -N --no-check-certificate ${kodcloud_path} -O kodcloud.tar.gz
+wget --no-check-certificate ${kodcloud_path} -O kodcloud.tar.gz
 tar -zxvf kodcloud.tar.gz -C ${wwwroot}
 mv ${wwwroot}/*KodExplorer*/* ${wwwroot}
 rm -rf ${wwwroot}/*KodExplorer*
@@ -577,7 +577,7 @@ echo -e "${OK} ${GreenBG} 正在安装 laverna 到 ${wwwroot} 目录 ${Font}"
 rm -rf ${wwwroot}
 mkdir ${wwwroot}
 
-wget -N --no-check-certificate ${laverna_path} -O laverna.zip
+wget --no-check-certificate ${laverna_path} -O laverna.zip
 unzip laverna.zip -d ${wwwroot}
 
 mv ${wwwroot}/*laverna*/* ${wwwroot}
@@ -768,15 +768,15 @@ if [[ -e ${conf_dir} ]]; then
 	stty erase '^H' && read -p "请输入：" port3
 	[[ -z ${port3} ]] && port3="443"
 
-	wget -N --no-check-certificate ${rinetdbbr_url} -O rinetdbbr
+	wget --no-check-certificate ${rinetdbbr_url} -O rinetdbbr
 	mv rinetdbbr /usr/bin/rinetd-bbr
 	chmod +x /usr/bin/rinetd-bbr
 	judge "rinetd-bbr 安装"
 
 	IFACE=$(ip -4 addr | awk '{if ($1 ~ /inet/ && $NF ~ /^[ve]/) {a=$NF}} END{print a}')
 
-	touch ${rinetdbbr_conf_dir}
-	cat <<EOF >> ${rinetdbbr_conf_dir}
+	touch ${rinetdbbr_conf}
+	cat <<EOF >> ${rinetdbbr_conf}
 0.0.0.0 ${port3} 0.0.0.0 ${port3}
 EOF
 
