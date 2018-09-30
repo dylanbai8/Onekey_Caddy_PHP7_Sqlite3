@@ -45,8 +45,7 @@ rinetdbbr_url="https://github.com/dylanbai8/Onekey_Caddy_PHP7_Sqlite3/raw/master
 }
 
 win64_source(){
-bat_url="https://raw.githubusercontent.com/dylanbai8/Onekey_Caddy_PHP7_Sqlite3/master/bat"
-exe_url="https://raw.githubusercontent.com/dylanbai8/Onekey_Caddy_PHP7_Sqlite3/master/exe"
+bat_url="https://raw.githubusercontent.com/dylanbai8/Onekey_Caddy_PHP7_Sqlite3/master/zip"
 }
 
 #80端口用于签发验证ssl证书
@@ -915,9 +914,9 @@ win64_v2ray(){
 	wget --no-check-certificate https://github.com/v2ray/v2ray-core/releases/download/${NEW_VER}/v2ray-windows-64.zip -O v2ray.zip
 	unzip v2ray.zip
 	mv *windows*/* ./V2rayPro/v2ray
-	wget --no-check-certificate ${bat_url} -O start.bat
+	wget --no-check-certificate ${bat_url} -O bat.zip
+	unzip bat.zip
 	mv start.bat ./V2rayPro/start.bat
-	wget --no-check-certificate ${exe_url} -O wv2ray-service.exe
 	mv wv2ray-service.exe ./V2rayPro/v2ray/wv2ray-service.exe
 
 	v2ray_user_config
