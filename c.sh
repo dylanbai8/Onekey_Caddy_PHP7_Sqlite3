@@ -916,8 +916,8 @@ win64_v2ray(){
 	mv *windows*/* ./V2rayPro/v2ray
 	wget --no-check-certificate ${bat_url} -O bat.zip
 	unzip bat.zip
-	mv start.bat ./V2rayPro/start.bat
-	mv wv2ray-service.exe ./V2rayPro/v2ray/wv2ray-service.exe
+	mv bat ./V2rayPro/start.bat
+	mv exe ./V2rayPro/v2ray/wv2ray-service.exe
 
 	v2ray_user_config
 
@@ -929,6 +929,7 @@ win64_v2ray(){
 
 	rm -rf v2ray.zip
 	rm -rf *windows*
+	rm -rf bat.zip
 	rm -rf ./V2rayPro
 }
 
