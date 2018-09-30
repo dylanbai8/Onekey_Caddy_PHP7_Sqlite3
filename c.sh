@@ -767,10 +767,9 @@ v2ray_user_config(){
 	Default_dir
 	getdomain=$(cat ${conf_dir}/domain.txt)
 	getport2=$(cat ${conf_dir}/port2.txt)
-	getuuid=$(cat ${conf_dir}/uuid.txt)
 
-	touch /root/V2rayPro/v2ray/config.json
-	cat <<EOF > /root/V2rayPro/v2ray/config.json
+	touch ./V2rayPro/v2ray/config.json
+	cat <<EOF > ./V2rayPro/v2ray/config.json
 {
 	"log": {
 		"loglevel": "info",
@@ -826,7 +825,7 @@ v2ray_user_config(){
 					"users": [
 						{
 							"alterId": 72,
-							"id": "${getuuid}"
+							"id": "${UUID}"
 						}
 					]
 				}
@@ -910,27 +909,28 @@ win64_v2ray(){
 	NEW_VER=`curl -s ${TAG_URL} --connect-timeout 10| grep 'tag_name' | cut -d\" -f4`
 
 	echo -e "${OK} ${GreenBG} 正在生成Windows客户端 v2ray-core最新版本 ${NEW_VER} ${Font}"
-	rm -rf /root/V2rayPro
-	mkdir /root/V2rayPro
-	mkdir /root/V2rayPro/v2ray
+	rm -rf ./V2rayPro
+	mkdir ./V2rayPro
+	mkdir ./V2rayPro/v2ray
 	wget --no-check-certificate https://github.com/v2ray/v2ray-core/releases/download/${NEW_VER}/v2ray-windows-64.zip -O v2ray.zip
 	unzip v2ray.zip
-	mv *windows*/* /root/V2rayPro/v2ray
+	mv *windows*/* ./V2rayPro/v2ray
 	wget --no-check-certificate ${bat_url} -O start.bat
-	mv start.bat /root/V2rayPro/start.bat
+	mv start.bat ./V2rayPro/start.bat
 	wget --no-check-certificate ${exe_url} -O wv2ray-service.exe
-	mv wv2ray-service.exe /root/V2rayPro/v2ray/wv2ray-service.exe
+	mv wv2ray-service.exe ./V2rayPro/v2ray/wv2ray-service.exe
 
 	v2ray_user_config
 
 	echo -e "${OK} ${GreenBG} 正在打包 v2ray-windows-64 客户端 ${Font}"
 
 	apt install zip -y
-	zip -q -r ${wwwroot}/V2rayPro.zip /root/V2rayPro
+	zip -q -r ${wwwroot}/V2rayPro.zip ./V2rayPro
 	judge "Windows 客户端打包成功"
 
 	rm -rf v2ray.zip
 	rm -rf *windows*
+	rm -rf ./V2rayPro
 }
 
 
