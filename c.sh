@@ -208,6 +208,8 @@ domain_set(){
 		domain_set
 	else
 	echo -e "${OK} ${GreenBG} 你设置的域名为：${domain} ${Font}"
+	Default_dir
+	mkdir ${conf_dir} >/dev/null 2>&1
 	touch ${conf_dir}/domain.txt
 	cat <<EOF > ${conf_dir}/domain.txt
 ${domain}
@@ -312,9 +314,6 @@ apache_uninstall(){
 
 	apt install bc lsof unzip -y
 	judge "必要软件 bc lsof unzip 安装"
-
-	Default_dir
-	mkdir ${conf_dir} >/dev/null 2>&1
 }
 
 
