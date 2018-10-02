@@ -1,3 +1,21 @@
+## 免费 VPS
+```
+Skysilk新主机商，最近正式上线，走下方AFF链接送10美元，官网普通注册送5美元。
+官网最低价套餐为1美元/月512MB VPS，一共可用10月。需要信用卡验证。
+
+邀请链接：https://www.skysilk.com/ref/r1UvdFewpb
+
+貌似不支持QQ邮箱注册，Gmail和Aliyun邮箱测试正常
+```
+
+
+## 免费域名
+```
+http://www.freenom.com
+
+建议更换ns服务器，默认ns服务器在国内很不稳定。
+```
+
 
 ## 脚本特性：
 -----
@@ -6,7 +24,7 @@
 * 一键绑定域名自动生成SSL证书开启https（ssl自动续期）、支持IPv6
 * 一键安装 typecho、wordpress、zblog、kodexplorer、一键整站备份
 * 一键安装 v2ray、rinetdbbr
-* 支持系统：Debian 8 （建议选择mini版）
+* 支持系统：Debian 7、8、9 （建议选择mini版）
 -----
 -----
 
@@ -56,6 +74,7 @@ bash c.sh -v
 ```
 bash c.sh -b
 ```
+
 ## 一键卸载命令：
 ```
 卸载 caddy
@@ -71,3 +90,7 @@ bash c.sh -unv
 bash c.sh -unb
 ```
 
+## 小内存 vps 添加系统定时重启任务
+```
+(crontab -l ; echo "0 16 * * * /sbin/reboot") | crontab -
+```

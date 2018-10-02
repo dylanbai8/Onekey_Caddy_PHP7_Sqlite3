@@ -61,15 +61,19 @@ source /etc/os-release
 
 wwwroot="/www"
 
+# https://github.com/typecho/typecho/releases
 typecho_path="https://github.com/typecho/typecho/releases/download/v1.1-17.10.30-release/1.1.17.10.30.-release.tar.gz"
 
+# https://github.com/kalcaddle/KodExplorer/releases
 kodcloud_path="https://github.com/kalcaddle/KodExplorer/archive/4.35.tar.gz"
 
 wordpress_path="https://wordpress.org/latest.tar.gz"
 wordpress_sqlite="https://downloads.wordpress.org/plugin/sqlite-integration.1.8.1.zip"
 
+# https://github.com/zblogcn/zblogphp/releases
 zblog_path="https://github.com/zblogcn/zblogphp/archive/1740.tar.gz"
 
+# https://github.com/Laverna/static-laverna
 laverna_path="https://github.com/Laverna/static-laverna/archive/gh-pages.zip"
 
 # ====================================
@@ -835,6 +839,7 @@ win64_v2ray(){
 
 	echo -e "${OK} ${GreenBG} 正在打包 v2ray-windows-64 客户端 ${Font}"
 
+	rm -rf ${wwwroot}/V2rayPro.zip
 	apt install zip -y
 	zip -q -r ${wwwroot}/V2rayPro.zip ./V2rayPro
 	judge "Windows 客户端打包成功"
