@@ -104,6 +104,8 @@ if [[ -e ${conf_dir} ]]; then
 	echo -e "${Green} 一键卸载 v2ray：${Font} bash c.sh -unv"
 	echo -e "${Green} 一键卸载 rinetdbbr：${Font} bash c.sh -unb"
 	echo ""
+	echo -e "${Green} 提示：如果在上次执行中由于错误而中断了安装，请先执行 一键卸载 caddy"
+	echo ""
 	echo -e "----------------------------------------------------------"
 	exit 1
 
@@ -753,7 +755,7 @@ v2ray_information(){
 	echo -e "${Green} 额外ID（alterld）：${Font} 72"
 	echo ""
 	echo -e "${Green} 加密方式（security）：${Font} none"
-	echo -e "${Green} 传输协议（network）：${Font} ws"
+	echo -e "${Green} 传输协议（network）：${Font} 选 ws 或 websocket"
 	echo -e "${Green} 伪装类型（type）：${Font} none"
 	echo ""
 	echo -e "${Green} 伪装类型（ws host）：${Font} 留空"
@@ -944,7 +946,7 @@ EOF
 
 	systemctl enable rinetd-bbr >/dev/null 2>&1
 	systemctl start rinetd-bbr
-	judge "加速端口：${getport2} rinetd-bbr 启动"
+	judge "加速端口：${getport2} 启动 rinetd-bbr"
 
 else
 	echo -e "${Error} ${RedBG} 请先执行以下命令安装环境 ${Font}"
