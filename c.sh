@@ -104,7 +104,7 @@ if [[ -e ${conf_dir} ]]; then
 	echo -e "${Green} 一键卸载 v2ray：${Font} bash c.sh -unv"
 	echo -e "${Green} 一键卸载 rinetdbbr：${Font} bash c.sh -unb"
 	echo ""
-	echo -e "${Green} 提示：如果在上次执行中由于错误而中断了安装，请先执行 一键卸载 caddy"
+	echo -e "${Green} 提示：如果在上次执行中由于错误而中断了安装，请先执行 一键卸载 caddy ${Font}"
 	echo ""
 	echo -e "----------------------------------------------------------"
 	exit 1
