@@ -52,6 +52,8 @@ bat_url="https://raw.githubusercontent.com/dylanbai8/Onekey_Caddy_PHP7_Sqlite3/m
 port1="80"
 #端口port2可自定义
 port2="443"
+#用于websocket分流的随机端口
+let port3=$RANDOM+10000
 
 source /etc/os-release
 
@@ -215,6 +217,7 @@ domain_set(){
 		domain_set
 	else
 	echo -e "${OK} ${GreenBG} 你设置的域名为：${domain} ${Font}"
+
 	Default_dir
 	mkdir ${conf_dir} >/dev/null 2>&1
 	touch ${conf_dir}/domain.txt
@@ -224,6 +227,15 @@ EOF
 	touch ${conf_dir}/port2.txt
 	cat <<EOF > ${conf_dir}/port2.txt
 ${port2}
+EOF
+	touch ${conf_dir}/port3.txt
+	cat <<EOF > ${conf_dir}/port3.txt
+${port3}
+EOF
+	v2ray_path=`cat /dev/urandom | head -n 10 | md5sum | head -c 8`
+	touch ${conf_dir}/v2ray_path.txt
+	cat <<EOF > ${conf_dir}/v2ray_path.txt
+${v2ray_path}
 EOF
 	fi
 }
@@ -426,6 +438,10 @@ EOF
 
 #生成caddy配置文件
 caddy_conf_add(){
+
+	getport3=$(cat ${conf_dir}/port3.txt)
+	getv2ray_path=$(cat ${conf_dir}/v2ray_path.txt)
+
 	rm -rf ${caddy_conf_dir}
 	mkdir ${caddy_conf_dir}
 	touch ${caddy_conf}
@@ -437,7 +453,7 @@ https://${domain}:${port2} {
 	gzip
 	tls admin@${domain}
 	root ${wwwroot}
-	proxy /download localhost:2080 {
+	proxy /${getv2ray_path} localhost:${getport3} {
 		websocket
 		header_upstream -Origin
 	}
@@ -660,13 +676,16 @@ Default_dir
 if [[ -e ${conf_dir} ]]; then
 
 echo -e "${OK} ${GreenBG} 正在整站备份（含数据库） ${Font}"
+
+unzip_password_w=`cat /dev/urandom | head -n 10 | md5sum | head -c 8`
 rm -rf ${wwwroot}/www.zip
 apt install zip -y
-zip -q -r ${wwwroot}/www.zip ${wwwroot}
+zip -q -r -P ${unzip_password_w} ${wwwroot}/www.zip ${wwwroot}
 
 getdomain=$(cat ${conf_dir}/domain.txt)
 echo -e "${OK} ${GreenBG} 操作已完成 ${Font}"
 echo -e "${OK} ${GreenBG} 下载地址为：http:\\${getdomain}\www.zip ${Font}"
+echo -e "${Green} 解压密码（由函数随机生成）：${Font} ${unzip_password_w}"
 
 else
 	echo -e "${Error} ${RedBG} 请先执行以下命令安装环境 ${Font}"
@@ -699,12 +718,11 @@ time_modify(){
 
 #生成v2ray配置文件
 v2ray_conf_add(){
-	UUID=$(cat /proc/sys/kernel/random/uuid)
 	touch ${v2ray_conf}
 	cat <<EOF > ${v2ray_conf}
 {
   "inbound": {
-	"port": 2080,
+	"port": ${getport3},
 	"listen":"127.0.0.1",
 	"protocol": "vmess",
 	"settings": {
@@ -718,7 +736,7 @@ v2ray_conf_add(){
 	"streamSettings": {
 	  "network": "ws",
 	  "wsSettings": {
-	  "path": "/download"
+	  "path": "/${getv2ray_path}"
 	  }
 	}
   },
@@ -733,50 +751,8 @@ EOF
 }
 
 
-#重启v2ray加载配置
-restart_v2ray(){
-	systemctl daemon-reload
-	systemctl enable v2ray >/dev/null 2>&1
-	systemctl restart v2ray >/dev/null 2>&1
-	judge "V2ray 启动"
-}
-
-
-#展示v2ray客户端配置信息
-v2ray_information(){
-	clear
-	echo ""
-	echo -e "${Info} ${GreenBG} 基于 Caddy+v2ray 的 VMESS+WS+TLS+Website(Use Path) 安装成功 ${Font}"
-	echo -e "----------------------------------------------------------"
-	echo ""
-	echo -e "${Green} 地址（address）：${Font} ${getdomain}"
-	echo -e "${Green} 端口（port）：${Font} ${getport2}"
-	echo -e "${Green} 用户ID（id）：${Font} ${UUID}"
-	echo -e "${Green} 额外ID（alterld）：${Font} 72"
-	echo ""
-	echo -e "${Green} 加密方式（security）：${Font} none"
-	echo -e "${Green} 传输协议（network）：${Font} 选 ws 或 websocket"
-	echo -e "${Green} 伪装类型（type）：${Font} none"
-	echo ""
-	echo -e "${Green} 伪装类型（ws host）：${Font} 留空"
-	echo -e "${Green} 伪装路径（ws path）：${Font} /download"
-	echo -e "${Green} 底层传输安全：${Font} tls"
-	echo ""
-	echo -e "${Green} 注意：伪装路径不要少写 [ / ] ${Font}"
-	echo -e "${Green} Windows系统64位客户端下载：${Font} http:\\${getdomain}\V2rayPro.zip"
-	echo -e "${Green} 解压密码（由函数随机生成）：${Font} ${unzip_password}"
-	echo ""
-	echo -e "----------------------------------------------------------"
-}
-
-
 #生成v2ray客户端json文件
 v2ray_user_config(){
-
-	Default_dir
-	getdomain=$(cat ${conf_dir}/domain.txt)
-	getport2=$(cat ${conf_dir}/port2.txt)
-
 	touch ./V2rayPro/v2ray/config.json
 	cat <<EOF > ./V2rayPro/v2ray/config.json
 {
@@ -810,7 +786,7 @@ v2ray_user_config(){
 	  "network": "ws",
 	  "security": "tls",
 	  "wsSettings": {
-		"path": "/download"
+		"path": "/${getv2ray_path}"
 	  }
 	}
   }
@@ -845,13 +821,50 @@ win64_v2ray(){
 
 	rm -rf ${wwwroot}/V2rayPro.zip
 	apt install zip -y
-	zip -q -r -P ${unzip_password} ${wwwroot}/V2rayPro.zip ./V2rayPro
+	zip -q -r -P ${unzip_password_v} ${wwwroot}/V2rayPro.zip ./V2rayPro
 	judge "Windows 客户端打包成功"
 
 	rm -rf v2ray.zip
 	rm -rf *windows*
 	rm -rf bat.zip
 	rm -rf ./V2rayPro
+}
+
+
+#展示v2ray客户端配置信息
+v2ray_information(){
+	clear
+	echo ""
+	echo -e "${Info} ${GreenBG} 基于 Caddy+v2ray 的 VMESS+WS+TLS+Website(Use Path) 安装成功 ${Font}"
+	echo -e "----------------------------------------------------------"
+	echo ""
+	echo -e "${Green} 地址（address）：${Font} ${getdomain}"
+	echo -e "${Green} 端口（port）：${Font} ${getport2}"
+	echo -e "${Green} 用户ID（id）：${Font} ${UUID}"
+	echo -e "${Green} 额外ID（alterid）：${Font} 72"
+	echo ""
+	echo -e "${Green} 加密方式（security）：${Font} none"
+	echo -e "${Green} 传输协议（network）：${Font} 选 ws 或 websocket"
+	echo -e "${Green} 伪装类型（type）：${Font} none"
+	echo ""
+	echo -e "${Green} 伪装类型（ws host）：${Font} 留空"
+	echo -e "${Green} 伪装路径（ws path）：${Font} /${getv2ray_path}"
+	echo -e "${Green} 底层传输安全：${Font} tls"
+	echo ""
+	echo -e "${Green} 注意：伪装路径不要少写 [ / ] ${Font}"
+	echo -e "${Green} Windows系统64位客户端下载：${Font} http:\\${getdomain}\V2rayPro.zip"
+	echo -e "${Green} 解压密码（由函数随机生成）：${Font} ${unzip_password_v}"
+	echo ""
+	echo -e "----------------------------------------------------------"
+}
+
+
+#重启v2ray加载配置
+restart_v2ray(){
+	systemctl daemon-reload
+	systemctl enable v2ray >/dev/null 2>&1
+	systemctl restart v2ray >/dev/null 2>&1
+	judge "V2ray 启动"
 }
 
 
@@ -862,7 +875,15 @@ if [[ -e ${conf_dir} ]]; then
 
 	time_modify
 	Default_v2ray
-	unzip_password=`cat /dev/urandom | head -n 10 | md5sum | head -c 8`
+
+	UUID=$(cat /proc/sys/kernel/random/uuid)
+
+	getdomain=$(cat ${conf_dir}/domain.txt)
+	getport2=$(cat ${conf_dir}/port2.txt)
+	getport3=$(cat ${conf_dir}/port3.txt)
+	getv2ray_path=$(cat ${conf_dir}/v2ray_path.txt)
+
+	unzip_password_v=`cat /dev/urandom | head -n 10 | md5sum | head -c 8`
 	rm -rf ${v2ray_conf_dir}
 	mkdir ${v2ray_conf_dir}
 
