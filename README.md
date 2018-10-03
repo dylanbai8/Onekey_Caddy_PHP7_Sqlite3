@@ -1,22 +1,3 @@
-## 免费 VPS
-```
-Skysilk新主机商，最近正式上线，走下方AFF链接送10美元，官网普通注册送5美元。
-官网最低价套餐为 1美元/月 KVM VPS（512MB RAM / 10GB SSD / 单向各500G流量）月结、按小时付费（可以随时销毁重建来换IP！）。
-关注Facebook、Twitter、填写问卷后额外再送3美元，以上套餐一共可免费使用用13个月。需要信用卡验证。
-
-邀请链接：https://www.skysilk.com/ref/r1UvdFewpb
-
-貌似不支持QQ邮箱注册，Gmail和Aliyun邮箱测试正常
-```
-
-
-## 免费域名
-```
-http://www.freenom.com
-
-建议更换ns服务器，默认ns服务器在国内很不稳定。
-```
-
 
 ## 脚本特性：
 -----
