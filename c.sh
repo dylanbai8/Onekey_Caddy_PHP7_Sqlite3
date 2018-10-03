@@ -52,6 +52,9 @@ bat_url="https://raw.githubusercontent.com/dylanbai8/Onekey_Caddy_PHP7_Sqlite3/m
 port1="80"
 #端口port2可自定义
 port2="443"
+
+# alterId值越小越省内存
+alterId="8"
 #用于websocket分流的随机端口
 let port3=$RANDOM+10000
 
@@ -685,7 +688,7 @@ zip -q -r -P ${unzip_password_w} ${wwwroot}/www.zip ${wwwroot}
 getdomain=$(cat ${conf_dir}/domain.txt)
 echo -e "${OK} ${GreenBG} 操作已完成 ${Font}"
 echo -e "${OK} ${GreenBG} 下载地址为：http:\\${getdomain}\www.zip ${Font}"
-echo -e "${Green} 解压密码（由函数随机生成）：${Font} ${unzip_password_w}"
+echo -e "${OK} ${Green} 解压密码（由函数随机生成）：${Font} ${unzip_password_w}"
 
 else
 	echo -e "${Error} ${RedBG} 请先执行以下命令安装环境 ${Font}"
@@ -729,7 +732,7 @@ v2ray_conf_add(){
 	  "clients": [
 		{
 		  "id": "${UUID}",
-		  "alterId": 72
+		  "alterId": ${alterId}
 		}
 	  ]
 	},
@@ -776,7 +779,7 @@ v2ray_user_config(){
 		  "users": [
 			{
 			  "id": "${UUID}",
-			  "alterId": 72
+			  "alterId": ${alterId}
 			}
 		  ]
 		}
@@ -841,7 +844,7 @@ v2ray_information(){
 	echo -e "${Green} 地址（address）：${Font} ${getdomain}"
 	echo -e "${Green} 端口（port）：${Font} ${getport2}"
 	echo -e "${Green} 用户ID（id）：${Font} ${UUID}"
-	echo -e "${Green} 额外ID（alterid）：${Font} 72"
+	echo -e "${Green} 额外ID（alterid）：${Font} ${alterId}"
 	echo ""
 	echo -e "${Green} 加密方式（security）：${Font} none"
 	echo -e "${Green} 传输协议（network）：${Font} 选 ws 或 websocket"
