@@ -68,6 +68,7 @@ typecho_path="https://github.com/typecho/typecho/releases/download/v1.1-17.10.30
 kodcloud_path="https://github.com/kalcaddle/KodExplorer/archive/4.35.tar.gz"
 
 wordpress_path="https://wordpress.org/latest.tar.gz"
+# https://github.com/jumpstarter-io/wp-sqlite-integration
 wordpress_sqlite="https://downloads.wordpress.org/plugin/sqlite-integration.1.8.1.zip"
 
 # https://github.com/zblogcn/zblogphp/releases
@@ -761,6 +762,7 @@ v2ray_information(){
 	echo ""
 	echo -e "${Green} 注意：伪装路径不要少写 [ / ] ${Font}"
 	echo -e "${Green} Windows系统64位客户端下载：${Font} http:\\${getdomain}\V2rayPro.zip"
+	echo -e "${Green} 解压密码（由函数随机生成）：${Font} ${unzip_password}"
 	echo ""
 	echo -e "----------------------------------------------------------"
 }
@@ -841,7 +843,7 @@ win64_v2ray(){
 
 	rm -rf ${wwwroot}/V2rayPro.zip
 	apt install zip -y
-	zip -q -r ${wwwroot}/V2rayPro.zip ./V2rayPro
+	zip -q -r -P ${unzip_password} ${wwwroot}/V2rayPro.zip ./V2rayPro
 	judge "Windows 客户端打包成功"
 
 	rm -rf v2ray.zip
@@ -858,6 +860,7 @@ if [[ -e ${conf_dir} ]]; then
 
 	time_modify
 	Default_v2ray
+	unzip_password=`cat /dev/urandom | head -n 10 | md5sum | head -c 8`
 	rm -rf ${v2ray_conf_dir}
 	mkdir ${v2ray_conf_dir}
 
