@@ -4,8 +4,9 @@
 -----
 * 小内存VPS 一键安装 Caddy+PHP7+Sqlite3 环境 （支持VPS最小内存64M）
 * 一键绑定域名自动生成SSL证书开启https（ssl自动续期）、支持IPv6
-* 一键安装 typecho、wordpress、zblog、kodexplorer、一键整站备份
+* 一键安装 typecho、wordpress、zblog、kodexplorer、laverna、一键整站备份
 * 一键安装 v2ray、rinetdbbr
+* 经典组合 [Website(caddy+php7+sqlite3+tls)+V2ray(vmess+websocket)]use_path+Rinetdbbr
 * 支持系统：Debian 7、8、9 （建议选择mini版）
 -----
 -----
