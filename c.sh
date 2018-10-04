@@ -262,6 +262,8 @@ rm -rf /etc/systemd/system/caddy.service >/dev/null 2>&1
 
 rm -rf ${wwwroot} >/dev/null 2>&1
 rm -rf /root/.caddy >/dev/null 2>&1
+rm -rf /root/.gnupg >/dev/null 2>&1
+rm -rf /etc/${conf_dir} >/dev/null 2>&1
 echo -e "${OK} ${GreenBG} 操作已完成 ${Font}"
 }
 
