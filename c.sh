@@ -394,9 +394,11 @@ php_sqlite_install(){
 
 #安装caddy主程序
 caddy_install(){
+
 	Default_caddy
 	#caddy官方脚本
 	curl https://getcaddy.com | bash -s personal
+
 	#添加自启动 加载配置文件
 	touch /etc/systemd/system/caddy.service
 	cat <<EOF > /etc/systemd/system/caddy.service
@@ -423,8 +425,10 @@ EOF
 
 # 生成网站默认首页
 default_html(){
+
 	rm -rf ${wwwroot}
 	mkdir ${wwwroot}
+
 	touch ${wwwroot}/index.php
 	cat <<EOF > ${wwwroot}/index.php
 提示：Caddy+PHP7+Sqlite3 环境安装成功！<br><br>
@@ -701,7 +705,6 @@ fi
 
 #同步服务器时间
 time_modify(){
-
 	apt install ntpdate -y
 	judge "安装 NTPdate 时间同步服务 "
 
