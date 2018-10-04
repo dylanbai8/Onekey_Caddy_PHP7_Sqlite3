@@ -9,6 +9,7 @@
 #	* 一键安装 v2ray、rinetdbbr
 #	* 经典组合 [Website(caddy+php7+sqlite3+tls)+V2ray(vmess+websocket)]use_path+Rinetdbbr
 #	* 推荐系统：Debian 8 （建议选择mini版）
+#	* 开源地址：https://github.com/dylanbai8/Onekey_Caddy_PHP7_Sqlite3
 #	Blog: https://oo0.bid
 #====================================================
 
@@ -179,7 +180,7 @@ check_system(){
 		echo -e "${OK} ${GreenBG} 当前系统为 Debian ${VERSION_ID} ${VERSION} ${Font}"
 		add_source="add_source9"
 	else
-		echo -e "${Error} ${RedBG} 当前系统为 ${ID} ${VERSION_ID} 不在支持的系统列表内，安装中断 ${Font}"
+		echo -e "${Error} ${RedBG} 当前系统为 ${ID} ${VERSION_ID} 不在支持的系统列表内，脚本终止继续安装 ${Font}"
 		exit 1
 	fi
 }
@@ -191,7 +192,7 @@ echo -e "${OK} ${GreenBG} 正在检测是否支持 systemd ${Font}"
 	for CMD in iptables grep cut xargs systemctl ip awk
 	do
 		if ! type -p ${CMD}; then
-			echo -e "${Error} ${RedBG} 系统过度精简 缺少必要依赖 脚本终止安装 ${Font}"
+			echo -e "${Error} ${RedBG} 系统过度精简 缺少必要依赖 脚本终止继续安装 ${Font}"
 			exit 1
 		fi
 	done
@@ -206,7 +207,7 @@ judge(){
 		sleep 1
 	else
 		echo -e "${Error} ${RedBG} $1 失败 ${Font}"
-		echo -e "${Info} ${GreenBG} $1 反馈地址：https://git.io/issues4c.sh ${Font}"
+		echo -e "${Info} ${GreenBG} 脚本终止继续安装 反馈地址：https://git.io/issues4c.sh ${Font}"
 		exit 1
 	fi
 }
@@ -330,7 +331,7 @@ apache_uninstall(){
 
 	uninstall_apache2
 
-	echo -e "${OK} ${GreenBG} 正在更新源 请稍后 …… ${Font}"
+	echo -e "${OK} ${GreenBG} 正在更新源 请稍后 ... ${Font}"
 
 	${add_source}
 	judge "系统更新"
@@ -360,7 +361,7 @@ domain_check(){
 			sleep 2
 			;;
 		*)
-			echo -e "${RedBG} 安装终止 ${Font}"
+			echo -e "${RedBG} 脚本终止继续安装 ${Font}"
 			exit 2
 			;;
 		esac
@@ -879,7 +880,7 @@ restart_v2ray(){
 v2ray_install(){
 Default_dir
 if [[ -e ${conf_dir} ]]; then
-
+echo -e "${OK} ${GreenBG} 正在安装 V2Ray 请稍后 ... ${Font}"
 	time_modify
 	Default_v2ray
 
@@ -933,7 +934,7 @@ fi
 rinetdbbr_install(){
 Default_dir
 if [[ -e ${conf_dir} ]]; then
-
+echo -e "${OK} ${GreenBG} 正在安装 Rinetdbbr 请稍后 ... ${Font}"
 	Default_rinetdbbr
 	rm -rf ${rinetdbbr_conf_dir}
 	mkdir ${rinetdbbr_conf_dir}
@@ -972,6 +973,7 @@ WantedBy=multi-user.target
 EOF
 	judge "rinetd-bbr 自启动配置"
 
+	systemctl daemon-reload
 	systemctl enable rinetd-bbr >/dev/null 2>&1
 	systemctl start rinetd-bbr
 	judge "加速端口：${getport2} 启动 rinetd-bbr"
