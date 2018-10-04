@@ -446,12 +446,12 @@ EOF
 
 #生成caddy配置文件
 caddy_conf_add(){
-
 	getport3=$(cat ${conf_dir}/port3.txt)
 	getv2ray_path=$(cat ${conf_dir}/v2ray_path.txt)
 
 	rm -rf ${caddy_conf_dir}
 	mkdir ${caddy_conf_dir}
+
 	touch ${caddy_conf}
 	cat <<EOF > ${caddy_conf}
 http://${domain}:${port1} {
