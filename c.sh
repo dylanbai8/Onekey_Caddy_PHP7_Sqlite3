@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #====================================================
-#	System Request: Debian 7、8、9
+#	System Request: Debian 8、9
 #	Author: dylanbai8
 #	* 小内存VPS 一键安装 Caddy+PHP7+Sqlite3 环境 （支持VPS最小内存64M）
 #	* 一键绑定域名自动生成SSL证书开启https（ssl自动续期）、支持IPv6
@@ -139,16 +139,6 @@ is_root(){
 
 
 #更新源
-add_source7(){
-echo -e "${OK} ${GreenBG} 正在为 Debian7 更新源 ${Font}"
-apt update -y
-apt install curl -y
-curl https://www.dotdeb.org/dotdeb.gpg | apt-key add -
-echo "deb http://packages.dotdeb.org wheezy all" >> /etc/apt/sources.list
-echo "deb-src http://packages.dotdeb.org wheezy all" >> /etc/apt/sources.list
-apt update -y
-}
-
 add_source8(){
 echo -e "${OK} ${GreenBG} 正在为 Debian8 更新源 ${Font}"
 apt update -y
@@ -170,10 +160,7 @@ apt install curl -y
 check_system(){
 	VERSION=`echo ${VERSION} | awk -F "[()]" '{print $2}'`
 
-	if [[ "${ID}" == "debian" && ${VERSION_ID} -ge 7 && ${VERSION_ID} -lt 8 ]];then
-		echo -e "${OK} ${GreenBG} 当前系统为 Debian ${VERSION_ID} ${VERSION} ${Font}"
-		add_source="add_source7"
-	elif [[ "${ID}" == "debian" && ${VERSION_ID} -ge 8 && ${VERSION_ID} -lt 9 ]];then
+	if [[ "${ID}" == "debian" && ${VERSION_ID} -ge 8 && ${VERSION_ID} -lt 9 ]];then
 		echo -e "${OK} ${GreenBG} 当前系统为 Debian ${VERSION_ID} ${VERSION} ${Font}"
 		add_source="add_source8"
 	elif [[ "${ID}" == "debian" && ${VERSION_ID} -ge 9 ]];then

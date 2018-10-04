@@ -7,7 +7,7 @@
 * 一键安装 typecho、wordpress、zblog、kodexplorer、laverna、一键整站备份
 * 一键安装 v2ray、rinetdbbr
 * 经典组合 [Website(caddy+php7+sqlite3+tls)+V2ray(vmess+websocket)]use_path+Rinetdbbr
-* 支持系统：Debian 7、8、9 （建议选择mini版）
+* 支持系统：Debian 8、9 （建议选择mini版）
 -----
 -----
 
