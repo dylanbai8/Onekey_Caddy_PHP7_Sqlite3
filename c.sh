@@ -270,6 +270,7 @@ rm -rf /etc/systemd/system/caddy.service >/dev/null 2>&1
 rm -rf ${wwwroot} >/dev/null 2>&1
 rm -rf /root/.caddy >/dev/null 2>&1
 rm -rf /root/.gnupg >/dev/null 2>&1
+rm -rf /root/.pki >/dev/null 2>&1
 rm -rf ${conf_dir} >/dev/null 2>&1
 echo -e "${OK} ${GreenBG} 操作已完成 ${Font}"
 }
@@ -437,6 +438,7 @@ if [[ "${ID}" == "centos" ]];then
 	${INS} install php70w-cgi php70w-fpm php70w-curl php70w-gd php70w-mbstring php70w-xml php70w-sqlite3 sqlite-devel -y
 	judge "php+sqlite3 安装"
 
+	setphp="127.0.0.1:9000"
 	systemctl enable php-fpm
 	systemctl restart php-fpm
 
@@ -445,6 +447,7 @@ else
 	${INS} install php7.0-cgi php7.0-fpm php7.0-curl php7.0-gd php7.0-mbstring php7.0-xml php7.0-sqlite3 sqlite3 -y
 	judge "php+sqlite3 安装"
 
+	setphp="/run/php/php7.0-fpm.sock"
 	systemctl enable php-fpm
 	systemctl restart php-fpm
 
@@ -531,7 +534,7 @@ https://${domain}:${port2} {
 		websocket
 		header_upstream -Origin
 	}
-	fastcgi / 127.0.0.1:9000 php
+	fastcgi / ${setphp} php
 }
 EOF
 
