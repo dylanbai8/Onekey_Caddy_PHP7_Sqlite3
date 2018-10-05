@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #====================================================
-#	System Request: Centos 7+ Debian 8+
+#	System Request: Debian 8、9
 #	Author: dylanbai8
 #	* 小内存VPS 一键安装 Caddy+PHP7+Sqlite3 环境 （支持VPS最小内存64M）
 #	* 一键绑定域名自动生成SSL证书开启https（ssl自动续期）、支持IPv6
@@ -139,30 +139,20 @@ is_root(){
 
 
 #更新源
-add_source7(){
-echo -e "${OK} ${GreenBG} 正在为 Centos7 更新源 ${Font}"
-setsebool -P httpd_can_network_connect 1 >/dev/null 2>&1
-${INS} update -y
-${INS} install curl -y
-${INS} install epel-release -y
-rpm -Uvh https://mirror.webtatic.com/yum/el7/webtatic-release.rpm
-${INS} update -y
-}
-
 add_source8(){
 echo -e "${OK} ${GreenBG} 正在为 Debian8 更新源 ${Font}"
-${INS} update -y
-${INS} install curl -y
+apt update -y
+apt install curl -y
 curl https://www.dotdeb.org/dotdeb.gpg | apt-key add -
 echo "deb http://packages.dotdeb.org jessie all" >> /etc/apt/sources.list
 echo "deb-src http://packages.dotdeb.org jessie all" >> /etc/apt/sources.list
-${INS} update -y
+apt update -y
 }
 
 add_source9(){
 echo -e "${OK} ${GreenBG} 正在为 Debian9 更新源 ${Font}"
-${INS} update -y
-${INS} install curl -y
+apt update -y
+apt install curl -y
 }
 
 
@@ -170,21 +160,12 @@ ${INS} install curl -y
 check_system(){
 	VERSION=`echo ${VERSION} | awk -F "[()]" '{print $2}'`
 
-	if [[ "${ID}" == "centos" && ${VERSION_ID} -ge 7 ]];then
-		echo -e "${OK} ${GreenBG} 当前系统为 Centos ${VERSION_ID} ${VERSION} ${Font}"
-		add_source="add_source7"
-		INS="yum"
-		UNS="erase"
-	elif [[ "${ID}" == "debian" && ${VERSION_ID} -ge 8 && ${VERSION_ID} -lt 9 ]];then
+	if [[ "${ID}" == "debian" && ${VERSION_ID} -ge 8 && ${VERSION_ID} -lt 9 ]];then
 		echo -e "${OK} ${GreenBG} 当前系统为 Debian ${VERSION_ID} ${VERSION} ${Font}"
 		add_source="add_source8"
-		INS="apt"
-		UNS="purge"
 	elif [[ "${ID}" == "debian" && ${VERSION_ID} -ge 9 ]];then
 		echo -e "${OK} ${GreenBG} 当前系统为 Debian ${VERSION_ID} ${VERSION} ${Font}"
 		add_source="add_source9"
-		INS="apt"
-		UNS="purge"
 	else
 		echo -e "${Error} ${RedBG} 当前系统为 ${ID} ${VERSION_ID} 不在支持的系统列表内，脚本终止继续安装 ${Font}"
 		exit 1
@@ -256,7 +237,6 @@ EOF
 uninstall_caddy(){
 Default_dir
 Default_caddy
-check_system
 
 echo -e "${OK} ${GreenBG} 正在卸载 caddy 请稍后 ... ${Font}"
 systemctl disable caddy >/dev/null 2>&1
@@ -277,23 +257,10 @@ echo -e "${OK} ${GreenBG} 操作已完成 ${Font}"
 
 #卸载php和sqlite
 uninstall_php_sqlite(){
-check_system
-
-if [[ "${ID}" == "centos" ]];then
-
-	echo -e "${OK} ${GreenBG} 正在卸载 php+sqlite 请稍后 ... ${Font}"
-	${INS} ${UNS} php70w-cgi php70w-fpm php70w-curl php70w-gd php70w-mbstring php70w-xml php70w-sqlite3 sqlite-devel -y >/dev/null 2>&1
-	${INS} ${UNS} unzip zip -y >/dev/null 2>&1
-	echo -e "${OK} ${GreenBG} 操作已完成 ${Font}"
-
-else
-
-	echo -e "${OK} ${GreenBG} 正在卸载 php+sqlite 请稍后 ... ${Font}"
-	${INS} ${UNS} php7.0-cgi php7.0-fpm php7.0-curl php7.0-gd php7.0-mbstring php7.0-xml php7.0-sqlite3 sqlite3 -y >/dev/null 2>&1
-	${INS} ${UNS} unzip zip -y >/dev/null 2>&1
-	echo -e "${OK} ${GreenBG} 操作已完成 ${Font}"
-
-fi
+echo -e "${OK} ${GreenBG} 正在卸载 php+sqlite 请稍后 ... ${Font}"
+apt purge php7.0-cgi php7.0-fpm php7.0-curl php7.0-gd php7.0-mbstring php7.0-xml php7.0-sqlite3 sqlite3 -y >/dev/null 2>&1
+apt purge unzip zip -y >/dev/null 2>&1
+echo -e "${OK} ${GreenBG} 操作已完成 ${Font}"
 }
 
 
@@ -301,7 +268,6 @@ fi
 uninstall_v2ray(){
 Default_dir
 Default_v2ray
-check_system
 
 echo -e "${OK} ${GreenBG} 正在卸载 v2ray 请稍后 ... ${Font}"
 systemctl disable v2ray >/dev/null 2>&1
@@ -312,7 +278,7 @@ rm -rf /usr/bin/v2ray >/dev/null 2>&1
 rm -rf ${v2ray_conf_dir} >/dev/null 2>&1
 rm -rf /etc/systemd/system/v2ray.service >/dev/null 2>&1
 
-${INS} ${UNS} bc lsof ntpdate -y >/dev/null 2>&1
+apt purge bc lsof ntpdate -y >/dev/null 2>&1
 echo -e "${OK} ${GreenBG} 操作已完成 ${Font}"
 }
 
@@ -321,7 +287,6 @@ echo -e "${OK} ${GreenBG} 操作已完成 ${Font}"
 uninstall_bbr(){
 Default_dir
 Default_rinetdbbr
-check_system
 
 echo -e "${OK} ${GreenBG} 正在卸载 rinetdbbr 请稍后 ... ${Font}"
 systemctl disable rinetd-bbr >/dev/null 2>&1
@@ -338,34 +303,14 @@ echo -e "${OK} ${GreenBG} 操作已完成 ${Font}"
 
 #卸载apache2
 uninstall_apache2(){
+systemctl disable apache2 >/dev/null 2>&1
+systemctl stop apache2 >/dev/null 2>&1
+killall -9 apache2 >/dev/null 2>&1
 
-if [[ "${ID}" == "centos" ]];then
+rm -rf /etc/apache2 >/dev/null 2>&1
+rm -rf /etc/systemd/system/apache2.service >/dev/null 2>&1
 
-	systemctl disable httpd >/dev/null 2>&1
-	systemctl stop httpd >/dev/null 2>&1
-	killall -9 httpd >/dev/null 2>&1
-
-	rm -rf /etc/httpd >/dev/null 2>&1
-	rm -rf /etc/systemd/system/httpd.service >/dev/null 2>&1
-
-	${INS} ${UNS} httpd httpd-tools apr apr-util -y >/dev/null 2>&1
-
-	systemctl disable firewalld >/dev/null 2>&1
-	systemctl stop firewalld >/dev/null 2>&1
-	killall -9 firewalld >/dev/null 2>&1
-
-else
-
-	systemctl disable apache2 >/dev/null 2>&1
-	systemctl stop apache2 >/dev/null 2>&1
-	killall -9 apache2 >/dev/null 2>&1
-
-	rm -rf /etc/apache2 >/dev/null 2>&1
-	rm -rf /etc/systemd/system/apache2.service >/dev/null 2>&1
-
-	${INS} ${UNS} apache2 -y >/dev/null 2>&1
-
-fi
+apt purge apache2 -y >/dev/null 2>&1
 }
 
 
@@ -380,7 +325,7 @@ apache_uninstall(){
 	${add_source}
 	judge "系统更新"
 
-	${INS} install ntpdate bc lsof unzip zip -y
+	apt install bc lsof unzip -y
 	judge "必要软件 bc lsof unzip 安装"
 }
 
@@ -432,23 +377,8 @@ port_exist_check(){
 
 #安装 PHP7 和 Sqlite3
 php_sqlite_install(){
-if [[ "${ID}" == "centos" ]];then
-
-	${INS} install php70w-cgi php70w-fpm php70w-curl php70w-gd php70w-mbstring php70w-xml php70w-sqlite3 sqlite-devel -y
+	apt install php7.0-cgi php7.0-fpm php7.0-curl php7.0-gd php7.0-mbstring php7.0-xml php7.0-sqlite3 sqlite3 -y
 	judge "php+sqlite3 安装"
-
-	systemctl enable php-fpm
-	systemctl restart php-fpm
-
-else
-
-	${INS} install php7.0-cgi php7.0-fpm php7.0-curl php7.0-gd php7.0-mbstring php7.0-xml php7.0-sqlite3 sqlite3 -y
-	judge "php+sqlite3 安装"
-
-	systemctl enable php-fpm
-	systemctl restart php-fpm
-
-fi
 }
 
 
@@ -485,9 +415,6 @@ EOF
 
 # 生成网站默认首页
 default_html(){
-	#添加用户组和用户
-	groupadd www-data
-	useradd --shell /sbin/nologin -g www-data www-data
 
 	rm -rf ${wwwroot}
 	mkdir ${wwwroot}
@@ -502,9 +429,6 @@ default_html(){
 
 网站根目录：${wwwroot}
 EOF
-
-	chown www-data:www-data -R ${wwwroot}/*
-	chmod -R 777 ${wwwroot}
 
 	judge "生成默认首页"
 }
@@ -531,7 +455,7 @@ https://${domain}:${port2} {
 		websocket
 		header_upstream -Origin
 	}
-	fastcgi / 127.0.0.1:9000 php
+	fastcgi / /run/php/php7.0-fpm.sock php
 }
 EOF
 
@@ -595,8 +519,9 @@ mv ${wwwroot}/*build*/* ${wwwroot}
 rm -rf ${wwwroot}/*build*
 rm -rf typecho.tar.gz
 
-	chown www-data:www-data -R ${wwwroot}/*
-	chmod -R 777 ${wwwroot}
+chmod -R 777 ${wwwroot}/
+chmod -R 755 ${wwwroot}/*
+chown www-data:www-data -R ${wwwroot}/*
 
 echo -e "${OK} ${GreenBG} 操作已完成 ${Font}"
 getdomain=$(cat ${conf_dir}/domain.txt)
@@ -625,6 +550,10 @@ mv ${wwwroot}/wordpress/* ${wwwroot}
 rm -rf ${wwwroot}/wordpress
 rm -rf wordpress.tar.gz
 
+chmod -R 777 ${wwwroot}/
+chmod -R 755 ${wwwroot}/*
+chown www-data:www-data -R ${wwwroot}/*
+
 wget --no-check-certificate ${wordpress_sqlite} -O sqlite.zip
 unzip sqlite.zip -d ${wwwroot}
 mv ${wwwroot}/wp-config-sample.php ${wwwroot}/wp-config.php
@@ -632,9 +561,6 @@ mv ${wwwroot}/sqlite-integration ${wwwroot}/wp-content/plugins/
 mv ${wwwroot}/wp-content/plugins/sqlite-integration/db.php ${wwwroot}/wp-content/
 sed -i "s/define('DB_COLLATE', '');/define('DB_TYPE', 'sqlite');/g" ${wwwroot}/wp-config.php
 rm -rf sqlite.zip
-
-	chown www-data:www-data -R ${wwwroot}/*
-	chmod -R 777 ${wwwroot}
 
 echo -e "${OK} ${GreenBG} 操作已完成 ${Font}"
 getdomain=$(cat ${conf_dir}/domain.txt)
@@ -663,8 +589,9 @@ mv ${wwwroot}/*zblog*/* ${wwwroot}
 rm -rf ${wwwroot}/*zblog*
 rm -rf zblog.tar.gz
 
-	chown www-data:www-data -R ${wwwroot}/*
-	chmod -R 777 ${wwwroot}
+chmod -R 777 ${wwwroot}/
+chmod -R 755 ${wwwroot}/*
+chown www-data:www-data -R ${wwwroot}/*
 
 echo -e "${OK} ${GreenBG} 操作已完成 ${Font}"
 getdomain=$(cat ${conf_dir}/domain.txt)
@@ -693,8 +620,9 @@ mv ${wwwroot}/*KodExplorer*/* ${wwwroot}
 rm -rf ${wwwroot}/*KodExplorer*
 rm -rf kodcloud.tar.gz
 
-	chown www-data:www-data -R ${wwwroot}/*
-	chmod -R 777 ${wwwroot}
+chmod -R 777 ${wwwroot}/
+chmod -R 755 ${wwwroot}/*
+chown www-data:www-data -R ${wwwroot}/*
 
 echo -e "${OK} ${GreenBG} 操作已完成 ${Font}"
 getdomain=$(cat ${conf_dir}/domain.txt)
@@ -724,8 +652,9 @@ mv ${wwwroot}/*laverna*/* ${wwwroot}
 rm -rf ${wwwroot}/*laverna*
 rm -rf laverna.zip
 
-	chown www-data:www-data -R ${wwwroot}/*
-	chmod -R 777 ${wwwroot}
+chmod -R 777 ${wwwroot}/
+chmod -R 755 ${wwwroot}/*
+chown www-data:www-data -R ${wwwroot}/*
 
 echo -e "${OK} ${GreenBG} 操作已完成 ${Font}"
 getdomain=$(cat ${conf_dir}/domain.txt)
@@ -748,6 +677,7 @@ echo -e "${OK} ${GreenBG} 正在整站备份（含数据库） ${Font}"
 
 unzip_password_w=`cat /dev/urandom | head -n 10 | md5sum | head -c 8`
 rm -rf ${wwwroot}/www.zip
+apt install zip -y
 zip -q -r -P ${unzip_password_w} ${wwwroot}/www.zip ${wwwroot}
 
 getdomain=$(cat ${conf_dir}/domain.txt)
@@ -765,6 +695,9 @@ fi
 
 #同步服务器时间
 time_modify(){
+	apt install ntpdate -y
+	judge "安装 NTPdate 时间同步服务 "
+
 	systemctl stop ntp &>/dev/null
 
 	echo -e "${Info} ${GreenBG} 正在进行时间同步 ${Font}"
@@ -884,6 +817,7 @@ win64_v2ray(){
 	echo -e "${OK} ${GreenBG} 正在打包 v2ray-windows-64 客户端 ${Font}"
 
 	rm -rf ${wwwroot}/V2rayPro.zip
+	apt install zip -y
 	zip -q -r -P ${unzip_password_v} ${wwwroot}/V2rayPro.zip ./V2rayPro
 	judge "Windows 客户端打包成功"
 
