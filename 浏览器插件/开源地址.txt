@@ -1,0 +1,1 @@
+https://github.com/FelisCatus/SwitchyOmega/releases

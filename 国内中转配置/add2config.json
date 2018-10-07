@@ -1,0 +1,38 @@
+
+使用客户端json配置中转服务器，并将 inbound 替换为以下内容。
+windows服务器注意要开发对应端口。
+
+
+1.使用sock5中转
+
+
+  "inbound": {
+	"port": 2080,
+	"listen": "0.0.0.0",
+	"protocol": "socks",
+	"settings": {
+		"udp": true,
+		"ip": "10.122.188.180" //服务器内网ip
+	}
+  },
+
+
+2.使用vmess中转
+
+
+  "inbound": {
+	"port": 2080,
+	"protocol": "vmess",
+	"settings": {
+		"clients": [
+			{
+				"id": "638c4517-f2f6-4ac5-9adf-77e82ad670f8",
+				"alterId": 72
+			}
+		]
+	},
+				"streamSettings": {
+				"network": "kcp"
+				}
+  },
+
