@@ -222,7 +222,7 @@ judge(){
 #设定域名
 domain_set(){
 	echo -e "${Info} ${GreenBG} 请输入你的域名信息(如:www.bing.com)，请确保域名A记录（或AAAA记录）已正确解析至服务器IP（支持IPv6）${Font}"
-	stty erase '^H' && read -p "请输入：" domain
+	stty erase '^H' && read -e -p "请输入：" domain
 	[[ -z ${domain} ]] && domain="none"
 	if [ "${domain}" = "none" ];then
 		domain_set
