@@ -875,8 +875,7 @@ win64_v2ray(){
 	mkdir ./V2rayPro
 	mkdir ./V2rayPro/v2ray
 	wget --no-check-certificate https://github.com/v2ray/v2ray-core/releases/download/${NEW_VER}/v2ray-windows-64.zip -O v2ray.zip
-	unzip v2ray.zip
-	mv *windows*/* ./V2rayPro/v2ray
+	unzip v2ray.zip -d ./V2rayPro/v2ray
 	wget --no-check-certificate ${bat_url} -O bat.zip
 	unzip bat.zip
 	mv bat ./V2rayPro/start.bat
@@ -891,7 +890,6 @@ win64_v2ray(){
 	judge "Windows 客户端打包成功"
 
 	rm -rf v2ray.zip
-	rm -rf *windows*
 	rm -rf bat.zip
 	rm -rf ./V2rayPro
 }
